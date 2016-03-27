@@ -35,6 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAPICodePack.1.1.0\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
       <Private>True</Private>
@@ -86,8 +87,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ComparableImage.cs" />
+    <Compile Include="ComparisonSet.cs" />
     <Compile Include="Comparitor.cs" />
     <Compile Include="DuplicateImageSet.cs" />
+    <Compile Include="Identifiers\HistogramIdentifier.cs" />
     <Compile Include="Identifiers\AIdentifier.cs" />
     <Compile Include="Identifiers\AHashIdentifier.cs" />
     <Compile Include="Identifiers\FileHashIdentifier.cs" />
@@ -124,6 +127,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Exceptions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

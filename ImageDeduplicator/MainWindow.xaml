@@ -14,24 +14,39 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="140" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="50" />
+            <RowDefinition Height="30" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="5"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Ribbon Grid.Row="0" Grid.Column="0" x:Name="ribbon" SelectedIndex="0" Grid.ColumnSpan="4" >
+        <Ribbon Grid.Row="0" Grid.Column="0" x:Name="ribbon" SelectedIndex="1" Grid.ColumnSpan="4" >
             <RibbonTab Header="Comparison">
                 <RibbonGroup>
-                    <RibbonButton Label="AddRight?" Click="setFoldeRButton_Click" />
+                    <RibbonButton Label="Load Folder" Click="setFoldeRButton_Click" />
+                </RibbonGroup>
+                <RibbonGroup Header="Actions">
+                    <RibbonButton Name="deleteButton" Label="Delete" Click="deleteButton_Click" />
+                    <RibbonButton Name="moveButton" Label="Move" Click="moveButton_Click" />
                 </RibbonGroup>
                 <RibbonGroup Header="View">
                 </RibbonGroup>
             </RibbonTab>
+            <RibbonTab Header="Auto-Select" IsSelected="True">
+                <RibbonGroup>
+                    <RibbonButton Name="autoSelectButton" Label="Auto-Select" Click="autoSelectButton_Click" />
+                </RibbonGroup>
+                <RibbonGroup Header="Options">
+                    <RibbonToggleButton Label="Only select inferior images" IsChecked="True" Name="onlyInferiorCheck" />
+                    <RibbonCheckBox IsChecked="True" Label="Prefer higher resolution" Name="higherResCheck" />
+                    <RibbonCheckBox IsChecked="True" Label="Prefer larger file size" Name="largerSizeCheck" />
+                    <RibbonTextBox Label="File Name Regex (Overrides all other settings)" Name="regexSelector" />
+                </RibbonGroup>
+            </RibbonTab>
         </Ribbon>
 
-        <ScrollViewer  Grid.Row="1" Grid.Column="0">
+        <ScrollViewer  Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Auto">
             <ItemsControl Name="imagesList" ItemsSource="{Binding}" >
                 <ItemsControl.DataContext>
                     <local:Comparitor x:Name="comparitor"/>
@@ -46,7 +61,21 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Image Source="{Binding Thumbnail}" HorizontalAlignment="Left" MouseEnter="Image_MouseEnter" MouseDown="Image_MouseDown" />
+                                    <Border BorderThickness="2"   >
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BorderBrush" Value="White"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Selected}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="Red"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Image Source="{Binding Thumbnail}" HorizontalAlignment="Left" 
+                                           MouseEnter="Image_MouseEnter" MouseDown="Image_MouseDown"
+                                            />
+                                    </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -56,12 +85,44 @@
         </ScrollViewer>
 
         <GridSplitter Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="1" />
-        <ScrollViewer Grid.Row="1" Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"  Name="imageScrollViewer" >
-            <Image HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="previewImage" Height="{Binding Path=ViewportHeight, ElementName=imageScrollViewer}" Width="{Binding Path=ViewportWidth, ElementName=imageScrollViewer}" />
-        </ScrollViewer>
+        <ItemsControl Grid.Row="1" Grid.Column="2" ItemsSource="{Binding Mode=OneWay}" >
+            <ItemsControl.DataContext>
+                <local:ComparisonSet x:Name="comparisonSet" />
+            </ItemsControl.DataContext>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1" Columns="{Binding Count}" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label>TEST</Label>
+                        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                      Name="imageScrollViewer" Background="Black"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <Image  Name="previewImage" 
+                                   Height="{Binding Path=ViewportHeight, RelativeSource={RelativeSource Mode=FindAncestor, 
+                                 AncestorType={x:Type ScrollViewer }}}"
+                                   Width="{Binding Path=ViewportWidth, RelativeSource={RelativeSource Mode=FindAncestor, 
+                                 AncestorType={x:Type ScrollViewer }}}"
+                                   Source="{Binding FullBitmapImage, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        </ScrollViewer>
+                        <Label Content="{Binding ImageFileName}" Grid.Row="1" />
+                        <Label Content="{Binding ImageSize}" Grid.Row="2"/>
+                        <Label Content="{Binding ImageDimensions}" Grid.Row="3"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
         <StatusBar Grid.Row="2" Grid.ColumnSpan="4">
-            <ProgressBar Value="50" Height="20" Width="300" />
+            <ProgressBar Value="{Binding LoadProgress, Mode=OneWay}" Height="20" Width="300" Name="loadingProgress" />
         </StatusBar>
     </Grid>
 </RibbonWindow>

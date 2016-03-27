@@ -13,7 +13,26 @@ using System.Windows.Media.Imaging;
 
 namespace ImageDeduplicator {
     public class ComparableImage : INotifyPropertyChanged {
-        public readonly FileInfo ImageFile;
+        public string ImageFile { get; private set; }
+        public string ImageFileName { get; private set; }
+        public int ImageHeight { get; private set; }
+        public int ImageWidth { get; private set; }
+        public string ImageDimensions { get {
+                return String.Concat(ImageHeight, "x", ImageWidth);
+            }
+        }
+        public long ImageSize { get; private set; }
+
+        public bool _Selected = false;
+        public bool Selected {
+            get { return _Selected; }
+            set { _Selected = value; NotifyPropertyChanged("Selected"); }
+        }
+
+        public string SourceFolder { get; private set;  }
+
+        public int ComparisonResult { get; set; }
+        public DuplicateImageSet CurrentDuplicateSet = null;
 
         public bool ImageLoaded { get; private set; }
         private MemoryStream _thumbStream;
@@ -31,32 +50,46 @@ namespace ImageDeduplicator {
                 return _thumbImage;
             }
         }
-
-        FileHashIdentifier FIleHash;
-        ImageHashIdentifier ImageHash;
-
-
-
-        public ComparableImage(System.IO.FileInfo image_file) {
-            ImageFile = image_file;
-            LoadImage(image_file);
+        public BitmapImage FullBitmapImage {
+            get {
+                return  new BitmapImage(new Uri(ImageFile));
+            }
         }
 
-        private void LoadImage(System.IO.FileInfo image_file) {
+        FileHashIdentifier FileHash;
+        ImageHashIdentifier ImageHash;
+        HistogramIdentifier Histogram;
+
+        public ComparableImage(string source_folder, string image_file) {
+            this.ImageFile = image_file;
+            this.SourceFolder = source_folder;
+        }
+
+        public void LoadImage() {
+            if (!File.Exists(ImageFile))
+                throw new FileNotFoundException("Could not find specified file", ImageFile);
+
+            ImageFileName = Path.GetFileName(ImageFile);
             Image image;
             using (MemoryStream ms = new MemoryStream()) {
-                using (FileStream fs = image_file.OpenRead()) {
+                using (FileStream fs = File.OpenRead(ImageFile)) {
                     fs.CopyTo(ms);
                 }
+                ImageSize = ms.Length;
+
                 ms.Seek(0, SeekOrigin.Begin);
 
                 using (BinaryReader br = new BinaryReader(ms)) {
-                    FIleHash = new FileHashIdentifier(br.ReadBytes((int)ms.Length));
+                    FileHash = new FileHashIdentifier(br.ReadBytes((int)ms.Length));
 
                     ms.Seek(0, SeekOrigin.Begin);
 
                     image = Bitmap.FromStream(ms);
+                    ImageHeight = image.Height;
+                    ImageWidth = image.Width;
                 }
+                Histogram = new HistogramIdentifier((Bitmap)image);
+
             }
             try {
                 // ImageHash = new ImageHashIdentifier(image);
@@ -73,7 +106,7 @@ namespace ImageDeduplicator {
             double ratio = height / old_height;
             int new_width = (int)Math.Round(ratio * image.Width);
 
-            using (Image thumbNail = new Bitmap(new_width, height, image.PixelFormat)) {
+            using (Image thumbNail = new Bitmap(new_width, height, System.Drawing.Imaging.PixelFormat.Format32bppPArgb)) {
                 using (Graphics g = Graphics.FromImage(thumbNail)) {
                     g.CompositingQuality = CompositingQuality.Default;
                     g.SmoothingMode = SmoothingMode.Default;
@@ -96,6 +129,14 @@ namespace ImageDeduplicator {
 
         }
 
+        public int CompareImage(ComparableImage ci) {
+            if (ci.FileHash.IsMatch(this.FileHash))
+                return Comparitor.MAX_COMPARISON_RESULT;
+
+            return ci.Histogram.Compare(this.Histogram);
+
+            //return 0;
+        }
 
         #region INotify Implementation
 

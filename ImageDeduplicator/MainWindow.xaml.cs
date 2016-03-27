@@ -27,13 +27,13 @@ namespace ImageDeduplicator {
 
         public MainWindow() {
             InitializeComponent();
-            imagesList.ItemsSource = comparitor;
+            loadingProgress.DataContext = comparitor;
         }
 
         private void setFoldeRButton_Click(object sender, RoutedEventArgs e) {
-            if(setDownloadFolder()) {
+            if (setDownloadFolder()) {
                 comparitor.Clear();
-                comparitor.LoadDirectory(new System.IO.DirectoryInfo(Properties.Settings.Default.LastDownloadDir), false);
+                comparitor.LoadDirectoryAsync(Properties.Settings.Default.LastDownloadDir, false);
             }
         }
 
@@ -61,14 +61,74 @@ namespace ImageDeduplicator {
             return true;
         }
 
+        private DuplicateImageSet currentSet = null;
         private void Image_MouseEnter(object sender, MouseEventArgs e) {
             Image img = (Image)sender;
             ComparableImage ci = (ComparableImage)img.DataContext;
-             ImageSource imageSource = new BitmapImage(new Uri(ci.ImageFile.FullName));
-            previewImage.Source = imageSource;
+            if (ci.CurrentDuplicateSet == currentSet) {
+                comparisonSet.SetTempImage(ci);
+            } else {
+                comparisonSet.Clear();
+                comparisonSet.SetTempImage(ci);
+            }
         }
 
         private void Image_MouseDown(object sender, MouseButtonEventArgs e) {
+            if (e.LeftButton == MouseButtonState.Pressed) {
+                Image img = (Image)sender;
+                ComparableImage ci = (ComparableImage)img.DataContext;
+                ci.Selected = !ci.Selected;
+            }
+            //if(e.RightButton== MouseButtonState.Pressed) {
+            //    Image img = (Image)sender;
+            //    ComparableImage ci = (ComparableImage)img.DataContext;
+            //    comparisonSet.ToggleCurrentImageSave(ci);
+            //}
+        }
+
+        private void autoSelectButton_Click(object sender, RoutedEventArgs e) {
+            foreach(DuplicateImageSet dis in this.comparitor) {
+                bool already_selected = false;
+                foreach(ComparableImage ci in dis) {
+                    if (ci.Selected) {
+                        already_selected = true;
+                        break;
+                    }
+
+                    if(higherResCheck.IsChecked.Value) {
+
+                    }
+                }
+                if (already_selected)
+                    continue;
+
+
+            }
+        }
+
+        private List<ComparableImage> GatherSelectedFiles() {
+            List<ComparableImage> output = new List<ComparableImage>();
+            foreach(DuplicateImageSet dis in this.comparitor) {
+                foreach(ComparableImage ci in dis) {
+                    if (ci.Selected)
+                        output.Add(ci);
+                }
+            }
+            return output;
+        }
+        private void deleteButton_Click(object sender, RoutedEventArgs e) {
+            List<ComparableImage> files = GatherSelectedFiles();
+            foreach(ComparableImage ci in files) {
+                try {
+                    Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(ci.ImageFile, Microsoft.VisualBasic.FileIO.UIOption.AllDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+                    this.comparitor.RemoveImage(ci);
+                } catch(Exception ex) {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
+        private void moveButton_Click(object sender, RoutedEventArgs e) {
 
         }
     }
