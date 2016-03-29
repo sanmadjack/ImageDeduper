@@ -8,7 +8,7 @@
         Title="MainWindow" Height="540.789" Width="839.474">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo Description="An app with a taskbar info description" 
-                     ProgressValue="{Binding ProgressDouble}" ProgressState="Normal"/>
+                     ProgressValue="{Binding LoadProgress, Mode=OneWay}" ProgressState="Normal"/>
     </Window.TaskbarItemInfo>
     <Grid>
         <Grid.RowDefinitions>
@@ -20,6 +20,7 @@
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="5"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Ribbon Grid.Row="0" Grid.Column="0" x:Name="ribbon" SelectedIndex="1" Grid.ColumnSpan="4" >
             <RibbonTab Header="Comparison">
@@ -33,24 +34,28 @@
                 <RibbonGroup Header="View">
                 </RibbonGroup>
             </RibbonTab>
-            <RibbonTab Header="Auto-Select" IsSelected="True">
-                <RibbonGroup>
-                    <RibbonButton Name="autoSelectButton" Label="Auto-Select" Click="autoSelectButton_Click" />
-                </RibbonGroup>
-                <RibbonGroup Header="Options">
-                    <RibbonToggleButton Label="Only select inferior images" IsChecked="True" Name="onlyInferiorCheck" />
-                    <RibbonCheckBox IsChecked="True" Label="Prefer higher resolution" Name="higherResCheck" />
-                    <RibbonCheckBox IsChecked="True" Label="Prefer larger file size" Name="largerSizeCheck" />
-                    <RibbonTextBox Label="File Name Regex (Overrides all other settings)" Name="regexSelector" />
-                </RibbonGroup>
-            </RibbonTab>
         </Ribbon>
 
-        <ScrollViewer  Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Auto">
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="30" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="45" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0">Similarity</Label>
+                <Slider Grid.Column="1" Name="simliaritySlider" Minimum="1" Maximum="100" HorizontalAlignment="Stretch"
+                    Value="{Binding Fuzziness, Mode=TwoWay}" PreviewMouseUp="simliaritySlider_PreviewMouseUp" />
+                <Label Grid.Column="2" Content="{Binding Fuzziness, Mode=OneWay}" Name="similarityLabel" />
+            </Grid>
+
+            <ScrollViewer Grid.Row="1"  HorizontalScrollBarVisibility="Auto">
             <ItemsControl Name="imagesList" ItemsSource="{Binding}" >
-                <ItemsControl.DataContext>
-                    <local:Comparitor x:Name="comparitor"/>
-                </ItemsControl.DataContext>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <ItemsControl ItemsSource="{Binding}">
@@ -74,7 +79,7 @@
                                         </Border.Style>
                                         <Image Source="{Binding Thumbnail}" HorizontalAlignment="Left" 
                                            MouseEnter="Image_MouseEnter" MouseDown="Image_MouseDown"
-                                            />
+                                            Height="{Binding ElementName=thumbnailZoomSlider, Path=Value}" />
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -82,10 +87,23 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </ScrollViewer>
+            </ScrollViewer>
+
+            <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0">Thumbnail Size</Label>
+                    <Slider Grid.Column="1" Name="thumbnailZoomSlider" Minimum="25" Maximum="250" HorizontalAlignment="Stretch"
+                    Value="{Binding ThumbnailHeight, Mode=TwoWay}" PreviewMouseUp="thumbnailZoomSlider_MouseUp"  />
+                </Grid>
+
+
+        </Grid>
 
         <GridSplitter Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="1" />
-        <ItemsControl Grid.Row="1" Grid.Column="2" ItemsSource="{Binding Mode=OneWay}" >
+        <ItemsControl Grid.Row="1" Grid.Column="2" ItemsSource="{Binding Mode=OneWay}" Background="Black" >
             <ItemsControl.DataContext>
                 <local:ComparisonSet x:Name="comparisonSet" />
             </ItemsControl.DataContext>
@@ -102,6 +120,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Label>TEST</Label>
                         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
@@ -113,9 +132,10 @@
                                  AncestorType={x:Type ScrollViewer }}}"
                                    Source="{Binding FullBitmapImage, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                         </ScrollViewer>
-                        <Label Content="{Binding ImageFileName}" Grid.Row="1" />
-                        <Label Content="{Binding ImageSize}" Grid.Row="2"/>
-                        <Label Content="{Binding ImageDimensions}" Grid.Row="3"/>
+                        <Label Content="{Binding ImageFileName}" Grid.Row="1" Background="White" />
+                        <Label Content="{Binding ImageSize}" Grid.Row="2" Background="White" />
+                        <Label Content="{Binding ImageDimensions}" Grid.Row="3" Background="White" />
+                        <Label Content="{Binding ComparisonResult}" Grid.Row="4" Background="White" />
                     </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -124,5 +144,50 @@
         <StatusBar Grid.Row="2" Grid.ColumnSpan="4">
             <ProgressBar Value="{Binding LoadProgress, Mode=OneWay}" Height="20" Width="300" Name="loadingProgress" />
         </StatusBar>
+        <Expander x:Name="expander" Grid.Column="4" Grid.Row="1"  ExpandDirection="Left" >
+            <Expander.Header>
+                <Label>
+                    <Label.LayoutTransform>
+                        <RotateTransform Angle="90" />
+                    </Label.LayoutTransform>
+                    Auto-Select
+                </Label>
+            </Expander.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="25" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ListView Width="200" Grid.Row="0" Grid.ColumnSpan="4" Name="selectorList" ItemsSource="{Binding}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Label Content="{Binding Name}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <Button Name="addSelectorButton" Grid.Row="1" Grid.Column="0" Content="Add" Click="addSelectorButton_Click">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Name="fileNameRegexSelectorMenuItem" Header="File Name Regex" Click="fileNameRegexSelectorMenuItem_Click" />
+                            <MenuItem Name="parentDirectorySelectorMenuItem" Header="Parent Directory" Click="parentDirectorySelectorMenuItem_Click" />
+                            <MenuItem Name="pathRegexSelectorMenuItem" Header="Path Regex" Click="pathRegexSelectorMenuItem_Click" />
+                            <MenuItem Name="smallerFileSizeSelectorMenuItem" Header="Smaller File Size" Click="smallerFileSizeSelectorMenuItem_Click" />
+                            <MenuItem Name="smallerPixelCountSelectorMenuItem" Header="Smaller Pixel Count" Click="smallerPixelCountSelectorMenuItem_Click" />
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+                <Button Name="removeSelectorButton" Grid.Row="1" Grid.Column="1" Content="Remove" Click="removeSelectorButton_Click" />
+                <Button Name="upSelectorButton" Grid.Row="1" Grid.Column="2" Content="Up" Click="upSelectorButton_Click" />
+                <Button Name="downSelectorButton" Grid.Row="1" Grid.Column="3" Content="Down" Click="downSelectorButton_Click" />
+                <Button Name="autoSelectButton" Grid.Row="2" Grid.ColumnSpan="4" Content="Auto Select" Click="autoSelectButton_Click" />
+            </Grid>
+        </Expander>
     </Grid>
 </RibbonWindow>

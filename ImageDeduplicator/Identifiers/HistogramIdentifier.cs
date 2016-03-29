@@ -9,37 +9,37 @@ using System.Security.Cryptography;
 
 namespace ImageDeduplicator.Identifiers {
     class HistogramIdentifier : AIdentifier {
-        public readonly int Green;
-        public readonly int Red;
-        public readonly int Blue;
-        public readonly int Brightness;
+        public readonly double Green;
+        public readonly double Red;
+        public readonly double Blue;
+        public readonly double Brightness;
 
         private const double POTENTIAL_TOTAL = 255 * 4;
-        private const int MAX_MATCH_VARIANCE = 20;
+        private const int MAX_MATCH_VARIANCE = 30;
 
         public HistogramIdentifier(Bitmap image) {
-            long r=0, g=0, b=0, brightness =0;
+            double r =0, g=0, b=0, brightness =0;
             for(int y = 0; y < image.Height; y++) {
                 for(int x =0; x < image.Width; x++) {
                     Color color = image.GetPixel(x, y);
-                    r += Convert.ToInt16(color.R);
-                    g += Convert.ToInt16(color.G);
-                    b += Convert.ToInt16(color.B);
+                    r += (int)color.R;
+                    g += (int)color.G;
+                    b += (int)color.B;
                     
                 }
             }
             long pixel_count = image.Height * image.Width;
-            Red = (int)(r / pixel_count);
-            Green = (int)(g / pixel_count);
-            Blue = (int)(b / pixel_count);
+            Red = (r / pixel_count);
+            Green = (g / pixel_count);
+            Blue = (b / pixel_count);
             Brightness = (Red + Blue + Green) / 3;
         }
 
-        public int Compare(HistogramIdentifier other) {
-            int r = Math.Abs(Red - other.Red);
-            int g = Math.Abs(Green- other.Green);
-            int b = Math.Abs(Blue - other.Blue);
-            int brightness = Math.Abs(Brightness - other.Brightness);
+        public double Compare(HistogramIdentifier other) {
+            double r = Math.Abs(Red - other.Red);
+            double g = Math.Abs(Green- other.Green);
+            double b = Math.Abs(Blue - other.Blue);
+            double brightness = Math.Abs(Brightness - other.Brightness);
             double total = r + g + b + brightness;
             if(total > MAX_MATCH_VARIANCE) {
                 return 0;
@@ -47,7 +47,7 @@ namespace ImageDeduplicator.Identifiers {
            
             double percent = total / MAX_MATCH_VARIANCE;
 
-            return (int)Math.Round((1.0-percent) * Comparitor.MAX_COMPARISON_RESULT);
+            return (1.0-percent) * Comparitor.MAX_COMPARISON_RESULT;
         }
     }
 }

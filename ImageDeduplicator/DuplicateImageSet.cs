@@ -26,7 +26,9 @@ namespace ImageDeduplicator {
             int i = 0;
             for(i = 0; i<this.Count; i++) {
                 if(this[i].ComparisonResult<image.ComparisonResult) {
-                    this.Insert(i, image);
+                    App.Current.Dispatcher.Invoke((Action)(() => {
+                        this.Insert(i, image);
+                    }));
                     return;
                 }
             }

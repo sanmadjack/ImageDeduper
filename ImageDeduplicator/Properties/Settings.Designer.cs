@@ -34,5 +34,64 @@ namespace ImageDeduplicator.Properties {
                 this["LastDownloadDir"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int ThumbnailHeight {
+            get {
+                return ((int)(this["ThumbnailHeight"]));
+            }
+            set {
+                this["ThumbnailHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastMoveDir {
+            get {
+                return ((string)(this["LastMoveDir"]));
+            }
+            set {
+                this["LastMoveDir"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public double Similarity {
+            get {
+                return ((double)(this["Similarity"]));
+            }
+            set {
+                this["Similarity"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastPathRegexDir {
+            get {
+                return ((string)(this["LastPathRegexDir"]));
+            }
+            set {
+                this["LastPathRegexDir"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::ImageDeduplicator.SelectionCriteria.SelectionCriteria SelectionCriteria {
+            get {
+                return ((global::ImageDeduplicator.SelectionCriteria.SelectionCriteria)(this["SelectionCriteria"]));
+            }
+            set {
+                this["SelectionCriteria"] = value;
+            }
+        }
     }
 }

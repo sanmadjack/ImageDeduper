@@ -17,11 +17,13 @@ namespace ImageDeduplicator {
         public string ImageFileName { get; private set; }
         public int ImageHeight { get; private set; }
         public int ImageWidth { get; private set; }
+        public long ImagePixelCount { get; private set; }
+
         public string ImageDimensions { get {
                 return String.Concat(ImageHeight, "x", ImageWidth);
             }
         }
-        public long ImageSize { get; private set; }
+        public long ImageFileSize { get; private set; }
 
         public bool _Selected = false;
         public bool Selected {
@@ -31,21 +33,15 @@ namespace ImageDeduplicator {
 
         public string SourceFolder { get; private set;  }
 
-        public int ComparisonResult { get; set; }
         public DuplicateImageSet CurrentDuplicateSet = null;
 
         public bool ImageLoaded { get; private set; }
-        private MemoryStream _thumbStream;
+
         private BitmapImage _thumbImage;
         public BitmapImage Thumbnail {
             get {
-                if (_thumbImage == null && ImageLoaded) {
-                    this._thumbStream.Seek(0, SeekOrigin.Begin);
-                    BitmapImage bi = new BitmapImage();
-                    bi.BeginInit();
-                    bi.StreamSource = _thumbStream;
-                    bi.EndInit();
-                    _thumbImage = bi;
+                if (_thumbImage == null) {
+                    RegenerateThumbnail();
                 }
                 return _thumbImage;
             }
@@ -55,6 +51,8 @@ namespace ImageDeduplicator {
                 return  new BitmapImage(new Uri(ImageFile));
             }
         }
+
+        List<ComparisonResult> SimilarImages = new List<ComparisonResult>();
 
         FileHashIdentifier FileHash;
         ImageHashIdentifier ImageHash;
@@ -70,12 +68,12 @@ namespace ImageDeduplicator {
                 throw new FileNotFoundException("Could not find specified file", ImageFile);
 
             ImageFileName = Path.GetFileName(ImageFile);
-            Image image;
+            Image image = null;
             using (MemoryStream ms = new MemoryStream()) {
                 using (FileStream fs = File.OpenRead(ImageFile)) {
                     fs.CopyTo(ms);
                 }
-                ImageSize = ms.Length;
+                ImageFileSize = ms.Length;
 
                 ms.Seek(0, SeekOrigin.Begin);
 
@@ -83,24 +81,33 @@ namespace ImageDeduplicator {
                     FileHash = new FileHashIdentifier(br.ReadBytes((int)ms.Length));
 
                     ms.Seek(0, SeekOrigin.Begin);
-
-                    image = Bitmap.FromStream(ms);
+                        image = Bitmap.FromStream(ms);
                     ImageHeight = image.Height;
                     ImageWidth = image.Width;
+                    ImagePixelCount = ImageHeight * ImageWidth;
                 }
-                Histogram = new HistogramIdentifier((Bitmap)image);
+                try {
+                    Histogram = new HistogramIdentifier((Bitmap)image);
+                } finally {
+                    image.Dispose();
+                }
 
-            }
-            try {
-                // ImageHash = new ImageHashIdentifier(image);
-                UpdateThumbnail(image, 100);
-
-            } finally {
-                image.Dispose();
+                ImageLoaded = true;
             }
         }
 
-        private void UpdateThumbnail(Image image, int height) {
+        public void RegenerateThumbnail() {
+            Image image = Bitmap.FromFile(ImageFile);
+            UpdateThumbnail(image);
+        }
+
+        private int GeneratedThumbnailSize = -1;
+        private void UpdateThumbnail(Image image) {
+            int height = Properties.Settings.Default.ThumbnailHeight;
+
+            if (height == GeneratedThumbnailSize)
+                return;
+
             double old_height = image.Height;
             double old_width = image.Width;
             double ratio = height / old_height;
@@ -108,28 +115,36 @@ namespace ImageDeduplicator {
 
             using (Image thumbNail = new Bitmap(new_width, height, System.Drawing.Imaging.PixelFormat.Format32bppPArgb)) {
                 using (Graphics g = Graphics.FromImage(thumbNail)) {
-                    g.CompositingQuality = CompositingQuality.Default;
-                    g.SmoothingMode = SmoothingMode.Default;
-                    g.InterpolationMode = InterpolationMode.Default;
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.SmoothingMode = SmoothingMode.HighQuality;
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     Rectangle rect = new Rectangle(0, 0, new_width, height);
                     g.DrawImage(image, rect);
                 }
+                using (MemoryStream ms = new MemoryStream()) {
+                    thumbNail.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
 
-                if (this._thumbStream != null)
-                    this._thumbStream.Dispose();
+                    this._thumbImage = null;
+                    GeneratedThumbnailSize = height;
 
-                this._thumbStream = new MemoryStream();
-
-                thumbNail.Save(this._thumbStream, System.Drawing.Imaging.ImageFormat.Png);
-
-                this._thumbImage = null;
-                ImageLoaded = true;
-
+                    ms.Seek(0, SeekOrigin.Begin);
+                    BitmapImage bi = new BitmapImage();
+                    bi.BeginInit();
+                    bi.CacheOption = BitmapCacheOption.OnLoad;
+                    bi.StreamSource = ms;
+                    bi.EndInit();
+                    bi.Freeze();
+                    _thumbImage = bi;
+                    NotifyPropertyChanged("Thumbnail");
+                }
             }
 
         }
 
-        public int CompareImage(ComparableImage ci) {
+        public double CompareImage(ComparableImage ci) {
+            if (ci.ImageFile.Contains("379955")&& this.ImageFile.Contains("379953"))
+                Console.Out.WriteLine("test");
+
             if (ci.FileHash.IsMatch(this.FileHash))
                 return Comparitor.MAX_COMPARISON_RESULT;
 

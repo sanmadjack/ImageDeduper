@@ -7,10 +7,23 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
+using ImageDeduplicator.SelectionCriteria;
+using System.Xml.Serialization;
 
 namespace ImageDeduplicator {
     public class Comparitor : ObservableCollection<DuplicateImageSet>, INotifyPropertyChanged {
-        public double Fuzziness { get; set; }
+        private double _Fuzziness = 100;
+
+        public double Fuzziness {
+            get {
+                return Properties.Settings.Default.Similarity;
+            }
+            set {
+                Properties.Settings.Default.Similarity= value;
+                Properties.Settings.Default.Save();
+                NotifyPropertyChanged("Fuzziness");
+            }
+        }
 
         public const int MAX_COMPARISON_RESULT = 100;
 
@@ -23,6 +36,16 @@ namespace ImageDeduplicator {
             }
         }
 
+        public int ThumbnailHeight {
+            get {
+                return Properties.Settings.Default.ThumbnailHeight;
+            } set {
+                Properties.Settings.Default.ThumbnailHeight= value;
+                Properties.Settings.Default.Save();
+                NotifyPropertyChanged("ThumbnailSize");
+            }
+        }
+
         private List<ComparableImage> images = new List<ComparableImage>();
 
         private BackgroundWorker imageCompareWorkers = new BackgroundWorker();
@@ -32,11 +55,22 @@ namespace ImageDeduplicator {
         private Queue<ComparableImage> ImagesToCompare = new Queue<ComparableImage>();
 
 
+        public SelectionCriteria.SelectionCriteria selectors {
+            get {
+                if (Properties.Settings.Default.SelectionCriteria == null) {
+                    SelectionCriteria.SelectionCriteria sc = new SelectionCriteria.SelectionCriteria();
+                    sc.Add(new SmallerPixelCountSelectionCriteria());
+                    Properties.Settings.Default.SelectionCriteria = sc;
+                    Properties.Settings.Default.Save();
+                }
+                return Properties.Settings.Default.SelectionCriteria;
+            }
+        }
+       
+
         private bool StopAllThreads = false;
 
         public Comparitor() {
-            Fuzziness = 99;
-
             imageCompareWorkers.DoWork += ImageCompareWorkers_DoWork;
             for (int i = 0; i < Environment.ProcessorCount; i++) {
                 BackgroundWorker imageLoadWorker = new BackgroundWorker();
@@ -44,6 +78,7 @@ namespace ImageDeduplicator {
                 imageLoadWorker.RunWorkerCompleted += ImageLoadWorker_RunWorkerCompleted;
                 imageLoadWorkers.Add(imageLoadWorker);
             }
+
         }
 
         private void ImageCompareWorkers_DoWork(object sender, DoWorkEventArgs e) {
@@ -55,10 +90,11 @@ namespace ImageDeduplicator {
                 ci = ImagesToCompare.Dequeue();
             }
             while (ci != null) {
-
-                FindDupes(ci);
-                lock(images) {
-                    images.Add(ci);
+                if (File.Exists(ci.ImageFile)) {
+                    FindDupes(ci);
+                    lock(images) {
+                        images.Add(ci);
+                    }
                 }
 
                 NotifyPropertyChanged("LoadProgress");
@@ -94,6 +130,8 @@ namespace ImageDeduplicator {
                     }
                 } catch (FileNotFoundException ex) {
                     // Files gone, no need to pay it any attention
+                } catch(Exception ex) {
+                    Console.Out.WriteLine(ex.Message);
                 }
                 lock (ImagesToLoad) {
                     if (ImagesToLoad.Count > 0) {
@@ -142,13 +180,13 @@ namespace ImageDeduplicator {
 
         private void FindDupes(ComparableImage ci) {
             ComparableImage candidate_image = null;
-            int candidate_result = 0;
+            double candidate_result = 0;
 
             foreach (ComparableImage other_image in this.images) {
                 if (ci.ImageFile == other_image.ImageFile) // Same image checl
                     continue;
 
-                int result = other_image.CompareImage(ci);
+                double result = other_image.CompareImage(ci);
                 if (result > candidate_result) {
                     candidate_result = result;
                     candidate_image = other_image;
@@ -164,7 +202,7 @@ namespace ImageDeduplicator {
                     DuplicateImageSet currentSet = candidate_image.CurrentDuplicateSet;
                     ComparableImage first_image = currentSet.First<ComparableImage>();
                     if (first_image != candidate_image) {
-                        int first_image_result = first_image.CompareImage(ci);
+                        double first_image_result = first_image.CompareImage(ci);
                         if (first_image_result < Fuzziness) {
                             //This means that the current image doesn't match the dupe set's starter image enough to qualify
                             // So we move the image it matches out of that group and into the current image's group
@@ -180,14 +218,18 @@ namespace ImageDeduplicator {
                             ds = new DuplicateImageSet(candidate_image);
 
                         } else {
+                            candidate_result = first_image_result;
                             ds = currentSet;
                         }
                     } else {
                         ds = currentSet;
                     }
-
                 }
 
+                if (ds.Contains(ci))
+                    return;
+
+                ci.ComparisonResult = candidate_result;
                 ds.AddImage(ci);
 
                 App.Current.Dispatcher.Invoke((Action)(() => {
@@ -217,6 +259,61 @@ namespace ImageDeduplicator {
                 if (this.images.Contains(ci))
                     this.images.Remove(ci);
             }
+        }
+
+        Mutex comparisonMutex = new Mutex();
+        public async void recompareImages() {
+            await Task.Run(() => {
+                comparisonMutex.WaitOne();
+                App.Current.Dispatcher.Invoke((Action)(() => {
+                    lock (this) {
+                        this.Clear();
+                    }
+                }));
+                foreach (ComparableImage ci in this.images) {
+                    ci.CurrentDuplicateSet = null;
+                    ci.ComparisonResult = 0;
+                    ci.Selected = false;
+                    ImagesToCompare.Enqueue(ci);
+                }
+                if (!imageCompareWorkers.IsBusy)
+                    imageCompareWorkers.RunWorkerAsync();
+
+                comparisonMutex.ReleaseMutex();
+            });
+        }
+
+        Mutex thumbnailMutex = new Mutex();
+        bool isRegeneratingThumbnails = false, cancelThumbnailing = false;
+        public async void reGenerateThumbnails() {
+            await Task.Run(() => {
+                thumbnailMutex.WaitOne();
+                lock(this) {
+
+                foreach(DuplicateImageSet dis in this) {
+                        lock(dis) {
+
+                    foreach(ComparableImage ci in dis) {
+                                lock(ci) {
+                                    ci.RegenerateThumbnail();
+                                }
+                    }
+                        }
+                    }
+                }
+                thumbnailMutex.ReleaseMutex();
+            });
+        }
+
+        public void PerformAutoSelect() {
+            if (selectors.Count == 0)
+                throw new Exception("No selectors added");
+
+            foreach(DuplicateImageSet dis in this) {
+                List<ComparableImage> setImages = dis.ToList<ComparableImage>();
+                this.selectors.PerformSelection(setImages);
+            }
+
         }
 
         #region INotify Implementation

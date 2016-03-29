@@ -14,7 +14,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Windows.Controls.Ribbon;
-
+using System.Collections.ObjectModel;
+using System.IO;
+using ImageDeduplicator.SelectionCriteria;
 
 namespace ImageDeduplicator {
     /// <summary>
@@ -23,11 +25,16 @@ namespace ImageDeduplicator {
     public partial class MainWindow : RibbonWindow {
 
 
-        //Comparitor comparitor = new Comparitor();
-
+      Comparitor comparitor = new Comparitor();
         public MainWindow() {
             InitializeComponent();
+            this.DataContext = comparitor;
+            imagesList.DataContext = comparitor;
             loadingProgress.DataContext = comparitor;
+            thumbnailZoomSlider.DataContext = comparitor;
+            simliaritySlider.DataContext = comparitor;
+            similarityLabel.DataContext = comparitor;
+            selectorList.DataContext = comparitor.selectors;
         }
 
         private void setFoldeRButton_Click(object sender, RoutedEventArgs e) {
@@ -37,14 +44,14 @@ namespace ImageDeduplicator {
             }
         }
 
-        private bool setDownloadFolder() {
+        private string ChooseFolder(string start_dir) {
             CommonOpenFileDialog dlg = new CommonOpenFileDialog();
-            dlg.Title = "Select download folder";
+            dlg.Title = "Select folder";
             dlg.IsFolderPicker = true;
-            dlg.InitialDirectory = Properties.Settings.Default.LastDownloadDir;
+            dlg.InitialDirectory = start_dir;
             dlg.AddToMostRecentlyUsedList = false;
             dlg.AllowNonFileSystemItems = false;
-            dlg.DefaultDirectory = Properties.Settings.Default.LastDownloadDir;
+            dlg.DefaultDirectory = start_dir;
             dlg.EnsureFileExists = true;
             dlg.EnsurePathExists = true;
             dlg.EnsureReadOnly = false;
@@ -53,9 +60,16 @@ namespace ImageDeduplicator {
             dlg.ShowPlacesList = true;
 
             if (dlg.ShowDialog(this) == CommonFileDialogResult.Cancel) {
-                return false;
+                return null;
             }
-            string selected_dir = dlg.FileName;
+            return dlg.FileName;
+        }
+
+        private bool setDownloadFolder() {
+            string selected_dir = ChooseFolder(Properties.Settings.Default.LastDownloadDir);
+            if (selected_dir == null)
+                return false;
+
             Properties.Settings.Default.LastDownloadDir = selected_dir;
             Properties.Settings.Default.Save();
             return true;
@@ -86,25 +100,7 @@ namespace ImageDeduplicator {
             //}
         }
 
-        private void autoSelectButton_Click(object sender, RoutedEventArgs e) {
-            foreach(DuplicateImageSet dis in this.comparitor) {
-                bool already_selected = false;
-                foreach(ComparableImage ci in dis) {
-                    if (ci.Selected) {
-                        already_selected = true;
-                        break;
-                    }
 
-                    if(higherResCheck.IsChecked.Value) {
-
-                    }
-                }
-                if (already_selected)
-                    continue;
-
-
-            }
-        }
 
         private List<ComparableImage> GatherSelectedFiles() {
             List<ComparableImage> output = new List<ComparableImage>();
@@ -121,15 +117,156 @@ namespace ImageDeduplicator {
             foreach(ComparableImage ci in files) {
                 try {
                     Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(ci.ImageFile, Microsoft.VisualBasic.FileIO.UIOption.AllDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
-                    this.comparitor.RemoveImage(ci);
                 } catch(Exception ex) {
                     MessageBox.Show(ex.Message);
                 }
+                if (!File.Exists(ci.ImageFile))
+                    this.comparitor.RemoveImage(ci);
             }
         }
 
         private void moveButton_Click(object sender, RoutedEventArgs e) {
+            string selected_dir = ChooseFolder(Properties.Settings.Default.LastMoveDir);
+            if (selected_dir == null)
+                return;
+
+            Properties.Settings.Default.LastMoveDir = selected_dir;
+            Properties.Settings.Default.Save();
+
+            List<ComparableImage> files = GatherSelectedFiles();
+            foreach (ComparableImage ci in files) {
+                try {
+                    FileInfo fi = new FileInfo(ci.ImageFile);
+                    string new_path = System.IO.Path.Combine(selected_dir, fi.Name);
+
+                    if (File.Exists(new_path))
+                        MessageBox.Show(fi.Name + " already exists in the destination");
+
+                    fi.MoveTo(new_path);
+                } catch (Exception ex) {
+                    MessageBox.Show(ex.Message);
+                }
+                if(!File.Exists(ci.ImageFile))
+                    this.comparitor.RemoveImage(ci);
+            }
+
+            return;
+        }
+
+        private void thumbnailZoomSlider_MouseUp(object sender, MouseButtonEventArgs e) {
+            comparitor.reGenerateThumbnails();
+        }
+
+        private void simliaritySlider_PreviewMouseUp(object sender, MouseButtonEventArgs e) {
+            comparitor.recompareImages();
+        }
+
+        private void addSelectorButton_Click(object sender, RoutedEventArgs e) {
+            addSelectorButton.ContextMenu.IsOpen = true;
+        }
+
+        private void removeSelectorButton_Click(object sender, RoutedEventArgs e) {
+            System.Collections.IList crit = selectorList.SelectedItems;
+            List<ASelectionCriteria> toRemove = new List<ASelectionCriteria>();
+            foreach(object obj in crit) {
+                toRemove.Add((ASelectionCriteria)obj);
+            }
+            foreach(ASelectionCriteria sc in toRemove) {
+                this.comparitor.selectors.Remove(sc);
+            }
+            Properties.Settings.Default.Save();
+        }
+
+        private void upSelectorButton_Click(object sender, RoutedEventArgs e) {
+            System.Collections.IList crit = selectorList.SelectedItems;
+            if (crit.Count == 0)
+                return;
+
+            Object last = crit[crit.Count - 1];
+            Object first = crit[crit.Count - 1];
+            int last_position = this.comparitor.selectors.IndexOf((ASelectionCriteria)last);
+            int first_position = this.comparitor.selectors.IndexOf((ASelectionCriteria)first);
+
+            if (first_position==0)
+                return;
+
+            ASelectionCriteria prev = this.comparitor.selectors[first_position-1];
+            this.comparitor.selectors.RemoveAt(first_position - 1);
+            this.comparitor.selectors.Insert(last_position, prev);
+
+
+            Properties.Settings.Default.Save();
+        }
+
+        private void downSelectorButton_Click(object sender, RoutedEventArgs e) {
+            System.Collections.IList crit = selectorList.SelectedItems;
+            if (crit.Count == 0)
+                return;
+
+            Object last = crit[crit.Count - 1];
+            Object first = crit[crit.Count - 1];
+            int last_position = this.comparitor.selectors.IndexOf((ASelectionCriteria)last);
+            int first_position = this.comparitor.selectors.IndexOf((ASelectionCriteria)first);
+
+            if (this.comparitor.selectors.Count == last_position + 1)
+                return;
+
+            ASelectionCriteria next = this.comparitor.selectors[last_position + 1];
+            this.comparitor.selectors.RemoveAt(last_position + 1);
+            this.comparitor.selectors.Insert(first_position, next);
+
+            Properties.Settings.Default.Save();
+        }
+
+        private void autoSelectButton_Click(object sender, RoutedEventArgs e) {
+            try {
+                comparitor.PerformAutoSelect();
+            } catch(Exception ex) {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        #region Selection criteria menu item event handlers
+
+        private void smallerPixelCountSelectorMenuItem_Click(object sender, RoutedEventArgs e) {
+            comparitor.selectors.Add(new SmallerPixelCountSelectionCriteria());
+            Properties.Settings.Default.Save();
+        }
+
+        private void smallerFileSizeSelectorMenuItem_Click(object sender, RoutedEventArgs e) {
+            comparitor.selectors.Add(new SmallerFileSizeSelectionCriteria());
+            Properties.Settings.Default.Save();
+        }
+
+
+        private void fileNameRegexSelectorMenuItem_Click(object sender, RoutedEventArgs e) {
+            TextInputDialog dlg = new TextInputDialog("Please provide the regex");
+            if (!dlg.ShowDialog().Value)
+                return;
+            comparitor.selectors.Add(new FileNameRegexSelectionCriteria(dlg.GetInput()));
+            Properties.Settings.Default.Save();
+        }
+
+        private void parentDirectorySelectorMenuItem_Click(object sender, RoutedEventArgs e) {
+            string selected_dir = ChooseFolder(Properties.Settings.Default.LastMoveDir);
+            if (selected_dir == null)
+                return;
+
+            Properties.Settings.Default.LastMoveDir = selected_dir;
+
+            comparitor.selectors.Add(new ParentDirectorySelectionCriteria(selected_dir));
+            Properties.Settings.Default.Save();
+        }
+
+        private void pathRegexSelectorMenuItem_Click(object sender, RoutedEventArgs e) {
+            TextInputDialog dlg = new TextInputDialog("Please provide the regex");
+            if (!dlg.ShowDialog().Value)
+                return;
+            comparitor.selectors.Add(new PathRegexSelectionCriteria(dlg.GetInput()));
+            Properties.Settings.Default.Save();
 
         }
+        #endregion
+
     }
 }
