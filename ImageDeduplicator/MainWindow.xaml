@@ -8,11 +8,11 @@
         Title="MainWindow" Height="540.789" Width="839.474">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo Description="An app with a taskbar info description" 
-                     ProgressValue="{Binding LoadProgress, Mode=OneWay}" ProgressState="Normal"/>
+                     ProgressValue="{Binding LoadProgressDouble, Mode=OneWay}" ProgressState="Normal"/>
     </Window.TaskbarItemInfo>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="140" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
@@ -25,7 +25,7 @@
         <Ribbon Grid.Row="0" Grid.Column="0" x:Name="ribbon" SelectedIndex="1" Grid.ColumnSpan="4" >
             <RibbonTab Header="Comparison">
                 <RibbonGroup>
-                    <RibbonButton Label="Load Folder" Click="setFoldeRButton_Click" />
+                    <RibbonButton Label="Load Folder" Click="setFoldeRButton_Click" Height="18" VerticalAlignment="Bottom" />
                 </RibbonGroup>
                 <RibbonGroup Header="Actions">
                     <RibbonButton Name="deleteButton" Label="Delete" Click="deleteButton_Click" />
@@ -50,60 +50,71 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0">Similarity</Label>
                 <Slider Grid.Column="1" Name="simliaritySlider" Minimum="1" Maximum="100" HorizontalAlignment="Stretch"
-                    Value="{Binding Fuzziness, Mode=TwoWay}" PreviewMouseUp="simliaritySlider_PreviewMouseUp" />
+                    Value="{Binding Fuzziness, Mode=TwoWay}" PreviewMouseUp="simliaritySlider_PreviewMouseUp" TickFrequency="1" IsSnapToTickEnabled="True"  />
                 <Label Grid.Column="2" Content="{Binding Fuzziness, Mode=OneWay}" Name="similarityLabel" />
             </Grid>
 
             <ScrollViewer Grid.Row="1"  HorizontalScrollBarVisibility="Auto">
-            <ItemsControl Name="imagesList" ItemsSource="{Binding}" >
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <ItemsControl ItemsSource="{Binding}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border BorderThickness="2"   >
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="White"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Selected}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="Red"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <Image Source="{Binding Thumbnail}" HorizontalAlignment="Left" 
+                <ItemsControl Name="imagesList" ItemsSource="{Binding}" >
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ItemsControl ItemsSource="{Binding}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Border BorderThickness="2" Grid.Row="0"  >
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderBrush" Value="White"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Image.Selected}" Value="True">
+                                                                <Setter Property="BorderBrush" Value="Red"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Image Source="{Binding Image.Thumbnail}" HorizontalAlignment="Left" 
                                            MouseEnter="Image_MouseEnter" MouseDown="Image_MouseDown"
                                             Height="{Binding ElementName=thumbnailZoomSlider, Path=Value}" />
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+
+                                            </Border>
+                                            <Label Grid.Row="1" Content="{Binding Result}" />
+                                        </Grid>
+
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </ScrollViewer>
 
             <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Grid.Column="0">Thumbnail Size</Label>
-                    <Slider Grid.Column="1" Name="thumbnailZoomSlider" Minimum="25" Maximum="250" HorizontalAlignment="Stretch"
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0">Thumbnail Size</Label>
+                <Slider Grid.Column="1" Name="thumbnailZoomSlider" Minimum="25" Maximum="250" HorizontalAlignment="Stretch"
                     Value="{Binding ThumbnailHeight, Mode=TwoWay}" PreviewMouseUp="thumbnailZoomSlider_MouseUp"  />
-                </Grid>
+            </Grid>
 
 
         </Grid>
 
         <GridSplitter Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="1" />
-        <ItemsControl Grid.Row="1" Grid.Column="2" ItemsSource="{Binding Mode=OneWay}" Background="Black" >
+        
+        
+        <ItemsControl Grid.Row="1" Grid.Column="2" ItemsSource="{Binding Mode=OneWay}" Background="Black" Name="imageViewer" >
             <ItemsControl.DataContext>
                 <local:ComparisonSet x:Name="comparisonSet" />
             </ItemsControl.DataContext>
@@ -119,23 +130,43 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Label>TEST</Label>
-                        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ScrollChanged="imageScrollViewer_ScrollChanged"
                                       Name="imageScrollViewer" Background="Black"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                             <Image  Name="previewImage" 
-                                   Height="{Binding Path=ViewportHeight, RelativeSource={RelativeSource Mode=FindAncestor, 
-                                 AncestorType={x:Type ScrollViewer }}}"
-                                   Width="{Binding Path=ViewportWidth, RelativeSource={RelativeSource Mode=FindAncestor, 
-                                 AncestorType={x:Type ScrollViewer }}}"
-                                   Source="{Binding FullBitmapImage, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                   Source="{Binding FullBitmapImage, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                    MouseRightButtonUp="previewImage_MouseRightButtonUp" MouseWheel="previewImage_MouseWheel">
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Height" Value="{Binding ImageHeight, Mode=OneWay}"/>
+                                        <Setter Property="Width" Value="{Binding ImageWidth, Mode=OneWay}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}, Path=DataContext.ScaleImage}" Value="False">
+                                                <Setter Property="Height" Value="{Binding Path=ViewportHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer }}}"/>
+                                                <Setter Property="Width" Value="{Binding Path=ViewportWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer }}}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+
+                            </Image>
                         </ScrollViewer>
-                        <Label Content="{Binding ImageFileName}" Grid.Row="1" Background="White" />
-                        <Label Content="{Binding ImageSize}" Grid.Row="2" Background="White" />
-                        <Label Content="{Binding ImageDimensions}" Grid.Row="3" Background="White" />
-                        <Label Content="{Binding ComparisonResult}" Grid.Row="4" Background="White" />
+                        <Label Content="{Binding Image.ImageFileName}" Grid.Row="1" Background="White" />
+                        <WrapPanel  Orientation="Horizontal"  Background="White"  Grid.Row="2">
+                            <StackPanel Orientation="Horizontal">
+                                <Label>File Size</Label>
+                                <Label Content="{Binding Image.ImageFileSizeString}" Background="White" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label>Image Size</Label>
+                                <Label Content="{Binding Image.ImageDimensions}" Background="White" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label>Similarity</Label>
+                                <Label Content="{Binding Result}"  Background="White" />
+                            </StackPanel>
+                        </WrapPanel>
                     </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -143,6 +174,7 @@
 
         <StatusBar Grid.Row="2" Grid.ColumnSpan="4">
             <ProgressBar Value="{Binding LoadProgress, Mode=OneWay}" Height="20" Width="300" Name="loadingProgress" />
+            <Label Content="{Binding LoadProgressText, Mode=OneWay}" />
         </StatusBar>
         <Expander x:Name="expander" Grid.Column="4" Grid.Row="1"  ExpandDirection="Left" >
             <Expander.Header>
@@ -176,6 +208,7 @@
                     <Button.ContextMenu>
                         <ContextMenu>
                             <MenuItem Name="fileNameRegexSelectorMenuItem" Header="File Name Regex" Click="fileNameRegexSelectorMenuItem_Click" />
+                            <MenuItem Name="lossyFIleFormatSelectorMenuItem" Header="Lossy File Format" Click="lossyFIleFormatSelectorMenuItem_Click" />
                             <MenuItem Name="parentDirectorySelectorMenuItem" Header="Parent Directory" Click="parentDirectorySelectorMenuItem_Click" />
                             <MenuItem Name="pathRegexSelectorMenuItem" Header="Path Regex" Click="pathRegexSelectorMenuItem_Click" />
                             <MenuItem Name="smallerFileSizeSelectorMenuItem" Header="Smaller File Size" Click="smallerFileSizeSelectorMenuItem_Click" />

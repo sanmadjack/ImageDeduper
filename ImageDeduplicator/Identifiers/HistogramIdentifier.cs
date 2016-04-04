@@ -12,9 +12,9 @@ namespace ImageDeduplicator.Identifiers {
         public readonly double Green;
         public readonly double Red;
         public readonly double Blue;
-        public readonly double Brightness;
+        //public readonly double Brightness;
 
-        private const double POTENTIAL_TOTAL = 255 * 4;
+        private const double POTENTIAL_TOTAL = 255 * 3;
         private const int MAX_MATCH_VARIANCE = 30;
 
         public HistogramIdentifier(Bitmap image) {
@@ -32,15 +32,15 @@ namespace ImageDeduplicator.Identifiers {
             Red = (r / pixel_count);
             Green = (g / pixel_count);
             Blue = (b / pixel_count);
-            Brightness = (Red + Blue + Green) / 3;
+            //Brightness = (Red + Blue + Green) / 3;
         }
 
         public double Compare(HistogramIdentifier other) {
             double r = Math.Abs(Red - other.Red);
             double g = Math.Abs(Green- other.Green);
             double b = Math.Abs(Blue - other.Blue);
-            double brightness = Math.Abs(Brightness - other.Brightness);
-            double total = r + g + b + brightness;
+            //double brightness = Math.Abs(Brightness - other.Brightness);
+            double total = r + g + b ;
             if(total > MAX_MATCH_VARIANCE) {
                 return 0;
             }

@@ -21,23 +21,37 @@ namespace ImageDeduplicator.SelectionCriteria {
         }
         private Regex regex;
 
+        [XmlElement("invert")]
+        public bool Invert {
+            get; set;
+        }
         public override string Name {
             get {
-                return "File Name Regex: " + RegexString;
+                StringBuilder output = new StringBuilder();
+                output.Append("File Name Regex: ");
+                output.Append(RegexString);
+                if (Invert)
+                    output.Append(" (Invert)");
+                return output.ToString();
             }
 
             set {
                 base.Name = value;
             }
         }
+
         public FileNameRegexSelectionCriteria() { }
-        public FileNameRegexSelectionCriteria(string regex) {
+        public FileNameRegexSelectionCriteria(string regex, bool invert) {
             this.regex = new Regex(regex, RegexOptions.IgnoreCase);
-            
+            this.Invert = invert;
         }
 
         protected override bool DetermineIfSelectable(ComparableImage image) {
-            return regex.IsMatch(image.ImageFile);
+            if (Invert) {
+                return !regex.IsMatch(image.ImageFile);
+            } else {
+                return regex.IsMatch(image.ImageFile);
+            }
         }
     }
 }

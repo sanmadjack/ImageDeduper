@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace ImageDeduplicator {
-    public class ComparableImage : INotifyPropertyChanged {
+    public class ComparableImage : INotifyPropertyChanged, IComparable {
         public string ImageFile { get; private set; }
         public string ImageFileName { get; private set; }
         public int ImageHeight { get; private set; }
@@ -20,10 +20,14 @@ namespace ImageDeduplicator {
         public long ImagePixelCount { get; private set; }
 
         public string ImageDimensions { get {
-                return String.Concat(ImageHeight, "x", ImageWidth);
+                return String.Concat(ImageWidth, "x", ImageHeight);
             }
         }
         public long ImageFileSize { get; private set; }
+        public string ImageFileSizeString { get {
+                return String.Format("{0:n0}", ImageFileSize);
+            }
+        }
 
         public bool _Selected = false;
         public bool Selected {
@@ -31,11 +35,15 @@ namespace ImageDeduplicator {
             set { _Selected = value; NotifyPropertyChanged("Selected"); }
         }
 
+
+
+
         public string SourceFolder { get; private set;  }
 
         public DuplicateImageSet CurrentDuplicateSet = null;
 
         public bool ImageLoaded { get; private set; }
+        public System.Drawing.Imaging.ImageFormat ImageFormat { get; private set; }
 
         private BitmapImage _thumbImage;
         public BitmapImage Thumbnail {
@@ -46,21 +54,77 @@ namespace ImageDeduplicator {
                 return _thumbImage;
             }
         }
-        public BitmapImage FullBitmapImage {
-            get {
-                return  new BitmapImage(new Uri(ImageFile));
-            }
-        }
+
 
         List<ComparisonResult> SimilarImages = new List<ComparisonResult>();
 
         FileHashIdentifier FileHash;
         ImageHashIdentifier ImageHash;
         HistogramIdentifier Histogram;
+        ScaledDifferenceIdentifer Scaled;
 
         public ComparableImage(string source_folder, string image_file) {
             this.ImageFile = image_file;
             this.SourceFolder = source_folder;
+        }
+
+        public bool ContainsResultFor(ComparableImage ci) {
+            lock(this.SimilarImages) {
+                foreach (ComparisonResult cr in this.SimilarImages) {
+                    if (cr.Image == ci) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        public void AddResult(ComparableImage ci, double result) {
+            ComparisonResult cr = new ComparisonResult {
+                Image = ci,
+                Result = result
+            };
+            lock (this.SimilarImages) {
+                this.SimilarImages.Add(cr);
+                this.SimilarImages.Sort((x, y) => y.Result.CompareTo(x.Result));
+            }
+        }
+
+        public  void RemoveResultFor(ComparableImage ci) {
+            ComparisonResult cr = this.GetComparisonResultForImage(ci);
+            lock (this.SimilarImages) {
+                this.SimilarImages.Remove(cr);
+            }
+        }
+
+        public ComparisonResult GetComparisonResultForImage(ComparableImage ci) {
+            lock (this.SimilarImages) {
+                foreach (ComparisonResult cr in this.SimilarImages) {
+                    if (cr.Image == ci) {
+                        return cr;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public ComparisonResult GetTopSimilarImage() {
+            if (this.SimilarImages.Count == 0)
+                return null;
+            lock (this.SimilarImages) {
+                return SimilarImages.First<ComparisonResult>();
+            }
+        }
+
+        public List<ComparisonResult> GetSimilarImages() {
+            lock (this.SimilarImages) {
+                return SimilarImages.ToList<ComparisonResult>();
+            }
+        }
+
+        public void ClearSimilarImages() {
+            lock (this.SimilarImages) {
+                this.SimilarImages.Clear();
+            }
         }
 
         public void LoadImage() {
@@ -84,10 +148,12 @@ namespace ImageDeduplicator {
                         image = Bitmap.FromStream(ms);
                     ImageHeight = image.Height;
                     ImageWidth = image.Width;
+                    ImageFormat = image.RawFormat;
                     ImagePixelCount = ImageHeight * ImageWidth;
                 }
                 try {
-                    Histogram = new HistogramIdentifier((Bitmap)image);
+                    //Histogram = new HistogramIdentifier((Bitmap)image);
+                    Scaled = new ScaledDifferenceIdentifer((Bitmap)image);
                 } finally {
                     image.Dispose();
                 }
@@ -148,9 +214,11 @@ namespace ImageDeduplicator {
             if (ci.FileHash.IsMatch(this.FileHash))
                 return Comparitor.MAX_COMPARISON_RESULT;
 
-            return ci.Histogram.Compare(this.Histogram);
+            double result;// = ci.Histogram.Compare(this.Histogram);
 
-            //return 0;
+            result = ci.Scaled.Compare(this.Scaled);
+
+            return result;
         }
 
         #region INotify Implementation
@@ -161,6 +229,10 @@ namespace ImageDeduplicator {
             if (PropertyChanged != null) {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
+        }
+
+        public int CompareTo(object obj) {
+            throw new NotImplementedException();
         }
 
         #endregion

@@ -1,36 +1,77 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ImageDeduplicator {
-    public class ComparisonSet: ObservableCollection<ComparableImage> {
+    public class ComparisonSet: ObservableCollection<ComparisonResult>, INotifyPropertyChanged {
 
-        private ComparableImage temp_image = null;
-
-        public void SetTempImage(ComparableImage image) {
-            if(temp_image!=null) {
-                this.Remove(temp_image);
+        private static bool _ScaleImage = false;
+        public bool ScaleImage {
+            get {
+                return _ScaleImage;
             }
-            if(!this.Contains(image)) {
-                this.temp_image = image;
-                this.Insert(0, temp_image);
+            set {
+                _ScaleImage = value;
+                NotifyPropertyChanged("ScaleImage");
             }
         }
 
+        private bool HasTempImage = false;
 
-        public void ToggleCurrentImageSave(ComparableImage image) {
-            if (temp_image == null||temp_image!= image) {
-                if(this.Contains(image)) {
-                    this.Remove(image);
+        public void AddImage(ComparisonResult cr) {
+            if (HasTempImage) {
+                this.RemoveAt(0);
+                HasTempImage = false;
+            }
+
+            int i = this.IndexOf(cr);
+            if (i!=-1) {
+                return;
+            }
+
+            this.Insert(0, cr);
+            HasTempImage = true;
+        }
+
+
+        public void ToggleImage(ComparisonResult cr) {
+            int i = this.IndexOf(cr);
+            if(i==-1) {
+                return;
+            }
+            if (i == 0 && HasTempImage) {
+                HasTempImage = false;
+            } else {
+                if (HasTempImage) {
+                    this.RemoveAt(0);
                 }
-                this.Insert(0, image);
-                temp_image = image;
-            } else if(temp_image==image) { 
-                temp_image = null;
+                this.Remove(cr);
+                this.Insert(0, cr);
+                HasTempImage = true;
+            }
+
+            cr.Comparing = true;
+
+        }
+
+        #region INotify Implementation
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged(String propertyName = "") {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
+
+        public int CompareTo(object obj) {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

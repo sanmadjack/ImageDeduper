@@ -12,21 +12,33 @@ using System.Xml.Serialization;
 
 namespace ImageDeduplicator {
     public class Comparitor : ObservableCollection<DuplicateImageSet>, INotifyPropertyChanged {
-        private double _Fuzziness = 100;
-
         public double Fuzziness {
             get {
                 return Properties.Settings.Default.Similarity;
             }
             set {
-                Properties.Settings.Default.Similarity= value;
+                Properties.Settings.Default.Similarity = value;
                 Properties.Settings.Default.Save();
                 NotifyPropertyChanged("Fuzziness");
             }
         }
 
-        public const int MAX_COMPARISON_RESULT = 100;
+        public const double MAX_COMPARISON_RESULT = 100;
 
+        public String LoadProgressText {
+            get {
+                StringBuilder output = new StringBuilder();
+                output.Append(images.Count);
+                output.Append("/");
+                output.Append(ImagesToLoad.Count + ImagesToCompare.Count + images.Count);
+                return output.ToString();
+            }
+        }
+        public double LoadProgressDouble {
+            get {
+                return ((double)LoadProgress) / 100;
+            }
+        }
         public int LoadProgress {
             get {
                 double total_to_load = ImagesToLoad.Count + ImagesToCompare.Count + images.Count;
@@ -39,8 +51,9 @@ namespace ImageDeduplicator {
         public int ThumbnailHeight {
             get {
                 return Properties.Settings.Default.ThumbnailHeight;
-            } set {
-                Properties.Settings.Default.ThumbnailHeight= value;
+            }
+            set {
+                Properties.Settings.Default.ThumbnailHeight = value;
                 Properties.Settings.Default.Save();
                 NotifyPropertyChanged("ThumbnailSize");
             }
@@ -66,7 +79,7 @@ namespace ImageDeduplicator {
                 return Properties.Settings.Default.SelectionCriteria;
             }
         }
-       
+
 
         private bool StopAllThreads = false;
 
@@ -81,6 +94,42 @@ namespace ImageDeduplicator {
 
         }
 
+        public void Reset() {
+            lock(ImagesToLoad) 
+                this.ImagesToLoad.Clear();
+            lock(ImagesToCompare)
+                this.ImagesToCompare.Clear();
+            lock(this.images)
+                this.images.Clear();
+            lock(this)
+                this.Clear();
+        }
+
+        private void SendProgressUpdate() {
+            NotifyPropertyChanged("LoadProgress");
+            NotifyPropertyChanged("LoadProgressDouble");
+            NotifyPropertyChanged("LoadProgressText");
+        }
+
+        private ComparableImage SafelyGetNextImage(ComparableImage image) {
+            lock (images) {
+                if(images.Count==0) {
+                    return null;
+                }
+                if (image==null) {
+                    return images[0];
+                }
+                int i = images.IndexOf(image);
+                if(i ==-1) {
+                    throw new Exception("Shit");
+                }
+                if((i+2)>images.Count) {
+                    return null;
+                }
+                return images[i + 1];
+            }
+        }
+
         private void ImageCompareWorkers_DoWork(object sender, DoWorkEventArgs e) {
             ComparableImage ci = null;
             lock (ImagesToCompare) {
@@ -91,13 +140,14 @@ namespace ImageDeduplicator {
             }
             while (ci != null) {
                 if (File.Exists(ci.ImageFile)) {
+                    CalculateSimilarities(ci);
                     FindDupes(ci);
-                    lock(images) {
+                    lock (images) {
                         images.Add(ci);
                     }
                 }
 
-                NotifyPropertyChanged("LoadProgress");
+                SendProgressUpdate();
 
                 lock (ImagesToCompare) {
                     if (ImagesToCompare.Count == 0)
@@ -130,7 +180,7 @@ namespace ImageDeduplicator {
                     }
                 } catch (FileNotFoundException ex) {
                     // Files gone, no need to pay it any attention
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     Console.Out.WriteLine(ex.Message);
                 }
                 lock (ImagesToLoad) {
@@ -157,7 +207,7 @@ namespace ImageDeduplicator {
                     }
                 }
 
-                NotifyPropertyChanged("LoadProgress");
+                SendProgressUpdate();
                 foreach (BackgroundWorker worker in this.imageLoadWorkers) {
                     worker.RunWorkerAsync();
                 }
@@ -178,83 +228,86 @@ namespace ImageDeduplicator {
             return images;
         }
 
-        private void FindDupes(ComparableImage ci) {
-            ComparableImage candidate_image = null;
-            double candidate_result = 0;
 
-            foreach (ComparableImage other_image in this.images) {
-                if (ci.ImageFile == other_image.ImageFile) // Same image checl
+
+        private void CalculateSimilarities(ComparableImage ci) {
+            ComparableImage other_image = SafelyGetNextImage(null);
+            while(other_image!=null) { 
+                if (ci.ImageFile == other_image.ImageFile) { // Same image check
+                    other_image = SafelyGetNextImage(other_image);
                     continue;
+                }
+
+                if (ci.ContainsResultFor(other_image)) {
+                    other_image = SafelyGetNextImage(other_image);
+                    continue;
+                }
 
                 double result = other_image.CompareImage(ci);
-                if (result > candidate_result) {
-                    candidate_result = result;
-                    candidate_image = other_image;
+
+                ci.AddResult(other_image, result);
+                other_image.AddResult(ci, result);
+
+                other_image = SafelyGetNextImage(other_image);
+            }
+
+        }
+
+        private void FindDupes(ComparableImage image) {
+            if (image.CurrentDuplicateSet != null)
+                return; // Already part of a dupe set
+
+            List<ComparisonResult> similar = image.GetSimilarImages();
+
+            DuplicateImageSet dis = null;
+
+            ComparisonResult cr = image.GetTopSimilarImage();
+            if (cr == null) // This just means the comparisons haven't been run yet.
+                return;
+
+            if (cr.Result >= Fuzziness) {
+                if (cr.Image.CurrentDuplicateSet == null) {
+                    dis = new DuplicateImageSet(cr.Image);
+                } else if (!cr.Image.CurrentDuplicateSet.ContainsImage(image)) {
+                    ComparisonResult first = cr.Image.CurrentDuplicateSet.First<ComparisonResult>().Image.GetComparisonResultForImage(image);
+                    if (first.Result < Fuzziness)
+                        return;
+                    dis = cr.Image.CurrentDuplicateSet;
+                } else {
+                    Console.Out.WriteLine();
                 }
             }
 
-            if (candidate_image != null && candidate_result >= Fuzziness) {
-                DuplicateImageSet ds;
-                if (candidate_image.CurrentDuplicateSet == null) {
-                    ds = new DuplicateImageSet(candidate_image);
-                } else {
-                    // This will get more complicated
-                    DuplicateImageSet currentSet = candidate_image.CurrentDuplicateSet;
-                    ComparableImage first_image = currentSet.First<ComparableImage>();
-                    if (first_image != candidate_image) {
-                        double first_image_result = first_image.CompareImage(ci);
-                        if (first_image_result < Fuzziness) {
-                            //This means that the current image doesn't match the dupe set's starter image enough to qualify
-                            // So we move the image it matches out of that group and into the current image's group
-                            App.Current.Dispatcher.Invoke((Action)(() => {
-                                currentSet.Remove(candidate_image);
-                                if (currentSet.Count == 1) {
-                                    lock (this) {
-                                        if (this.Contains(currentSet))
-                                            this.Remove(currentSet);
-                                    }
-                                }
-                            }));
-                            ds = new DuplicateImageSet(candidate_image);
 
-                        } else {
-                            candidate_result = first_image_result;
-                            ds = currentSet;
-                        }
-                    } else {
-                        ds = currentSet;
-                    }
-                }
-
-                if (ds.Contains(ci))
-                    return;
-
-                ci.ComparisonResult = candidate_result;
-                ds.AddImage(ci);
+            if (dis != null) {
+                dis.AddImage(image);
 
                 App.Current.Dispatcher.Invoke((Action)(() => {
                     lock (this) {
-                        if (!this.Contains(ds))
-                            this.Add(ds);
+                        if (!this.Contains(dis))
+                            this.Add(dis);
                     }
                 }));
             }
-
 
         }
 
         public void RemoveImage(ComparableImage ci) {
             DuplicateImageSet dis = ci.CurrentDuplicateSet;
-            if(dis!= null) {
-                lock(dis) {
-                    dis.Remove(ci);
-                    lock(this) {
+            if (dis != null) {
+                lock (dis) {
+                    dis.RemoveImage(ci);
+                    lock (this) {
                         if (this.Contains(dis)) {
                             this.Remove(dis);
                         }
                     }
                 }
             }
+            foreach(ComparisonResult other in ci.GetSimilarImages()) {
+                other.Image.RemoveResultFor(ci);
+            }
+
             lock (images) {
                 if (this.images.Contains(ci))
                     this.images.Remove(ci);
@@ -270,11 +323,16 @@ namespace ImageDeduplicator {
                         this.Clear();
                     }
                 }));
-                foreach (ComparableImage ci in this.images) {
-                    ci.CurrentDuplicateSet = null;
-                    ci.ComparisonResult = 0;
-                    ci.Selected = false;
-                    ImagesToCompare.Enqueue(ci);
+                lock(this.images) {
+                    lock(ImagesToCompare) {
+                        foreach (ComparableImage ci in this.images) {
+                            ci.CurrentDuplicateSet = null;
+                            ci.Selected = false;
+                            //ci.ClearSimilarImages();
+                            ImagesToCompare.Enqueue(ci);
+                        }
+                        this.images.Clear();
+                    }
                 }
                 if (!imageCompareWorkers.IsBusy)
                     imageCompareWorkers.RunWorkerAsync();
@@ -288,16 +346,18 @@ namespace ImageDeduplicator {
         public async void reGenerateThumbnails() {
             await Task.Run(() => {
                 thumbnailMutex.WaitOne();
-                lock(this) {
+                lock (this) {
 
-                foreach(DuplicateImageSet dis in this) {
-                        lock(dis) {
+                    foreach (DuplicateImageSet dis in this) {
+                        lock (dis) {
 
-                    foreach(ComparableImage ci in dis) {
-                                lock(ci) {
-                                    ci.RegenerateThumbnail();
+                            foreach (ComparisonResult cr in dis) {
+                                lock (cr) {
+                                    lock(cr.Image) {
+                                        cr.Image.RegenerateThumbnail();
+                                    }
                                 }
-                    }
+                            }
                         }
                     }
                 }
@@ -309,8 +369,8 @@ namespace ImageDeduplicator {
             if (selectors.Count == 0)
                 throw new Exception("No selectors added");
 
-            foreach(DuplicateImageSet dis in this) {
-                List<ComparableImage> setImages = dis.ToList<ComparableImage>();
+            foreach (DuplicateImageSet dis in this) {
+                List<ComparableImage> setImages = dis.GetImages();
                 this.selectors.PerformSelection(setImages);
             }
 

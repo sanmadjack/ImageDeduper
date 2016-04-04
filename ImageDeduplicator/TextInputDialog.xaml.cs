@@ -17,9 +17,14 @@ namespace ImageDeduplicator {
     /// Interaction logic for TextInputDialog.xaml
     /// </summary>
     public partial class TextInputDialog : Window {
-        public TextInputDialog(string title) {
+        public TextInputDialog(string title, bool show_invert_check = false) {
             InitializeComponent();
             this.Title = title;
+            if(show_invert_check) {
+                this.invertCheck.Visibility = Visibility.Visible;
+            } else {
+                this.invertCheck.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void okButton_Click(object sender, RoutedEventArgs e) {
@@ -34,6 +39,14 @@ namespace ImageDeduplicator {
 
         public string GetInput() {
             return this.inputTxt.Text;
+        }
+
+        public bool GetInvert() {
+            return this.invertCheck.IsChecked.Value;
+        }
+
+        private void invertCheck_Click(object sender, RoutedEventArgs e) {
+
         }
     }
 }

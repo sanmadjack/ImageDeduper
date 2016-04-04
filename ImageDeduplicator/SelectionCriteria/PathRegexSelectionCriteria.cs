@@ -20,10 +20,18 @@ namespace ImageDeduplicator.SelectionCriteria {
             }
         }
         private Regex regex;
-
+        [XmlElement("invert")]
+        public bool Invert {
+            get; set;
+        }
         public override string Name {
             get {
-                return "Path Regex: " + RegexString;
+                StringBuilder output = new StringBuilder();
+                output.Append("Path Regex: ");
+                output.Append(RegexString);
+                if(Invert)
+                    output.Append(" (Invert)");
+                return output.ToString();
             }
 
             set {
@@ -32,13 +40,17 @@ namespace ImageDeduplicator.SelectionCriteria {
         }
 
         public PathRegexSelectionCriteria() { }
-        public PathRegexSelectionCriteria(string regex) {
+        public PathRegexSelectionCriteria(string regex, bool invert) {
             this.regex = new Regex(regex, RegexOptions.IgnoreCase);
-            
+            this.Invert = invert;
         }
 
         protected override bool DetermineIfSelectable(ComparableImage image) {
-            return regex.IsMatch(image.ImageFile);
+            if(Invert) {
+                return !regex.IsMatch(image.ImageFile);
+            } else {
+                return regex.IsMatch(image.ImageFile);
+            }
         }
     }
 }

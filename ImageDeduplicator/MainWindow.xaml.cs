@@ -39,7 +39,7 @@ namespace ImageDeduplicator {
 
         private void setFoldeRButton_Click(object sender, RoutedEventArgs e) {
             if (setDownloadFolder()) {
-                comparitor.Clear();
+                comparitor.Reset();
                 comparitor.LoadDirectoryAsync(Properties.Settings.Default.LastDownloadDir, false);
             }
         }
@@ -78,26 +78,21 @@ namespace ImageDeduplicator {
         private DuplicateImageSet currentSet = null;
         private void Image_MouseEnter(object sender, MouseEventArgs e) {
             Image img = (Image)sender;
-            ComparableImage ci = (ComparableImage)img.DataContext;
-            if (ci.CurrentDuplicateSet == currentSet) {
-                comparisonSet.SetTempImage(ci);
-            } else {
-                comparisonSet.Clear();
-                comparisonSet.SetTempImage(ci);
-            }
+            ComparisonResult cr = (ComparisonResult)img.DataContext;
+            comparisonSet.AddImage(cr);
         }
 
         private void Image_MouseDown(object sender, MouseButtonEventArgs e) {
             if (e.LeftButton == MouseButtonState.Pressed) {
                 Image img = (Image)sender;
-                ComparableImage ci = (ComparableImage)img.DataContext;
-                ci.Selected = !ci.Selected;
+                ComparisonResult cr = (ComparisonResult)img.DataContext;
+                cr.Image.Selected = !cr.Image.Selected;
             }
-            //if(e.RightButton== MouseButtonState.Pressed) {
-            //    Image img = (Image)sender;
-            //    ComparableImage ci = (ComparableImage)img.DataContext;
-            //    comparisonSet.ToggleCurrentImageSave(ci);
-            //}
+            if (e.RightButton == MouseButtonState.Pressed) {
+                Image img = (Image)sender;
+                ComparisonResult cr = (ComparisonResult)img.DataContext;
+                comparisonSet.ToggleImage(cr);
+            }
         }
 
 
@@ -105,7 +100,7 @@ namespace ImageDeduplicator {
         private List<ComparableImage> GatherSelectedFiles() {
             List<ComparableImage> output = new List<ComparableImage>();
             foreach(DuplicateImageSet dis in this.comparitor) {
-                foreach(ComparableImage ci in dis) {
+                foreach(ComparableImage ci in dis.GetImages()) {
                     if (ci.Selected)
                         output.Add(ci);
                 }
@@ -116,7 +111,7 @@ namespace ImageDeduplicator {
             List<ComparableImage> files = GatherSelectedFiles();
             foreach(ComparableImage ci in files) {
                 try {
-                    Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(ci.ImageFile, Microsoft.VisualBasic.FileIO.UIOption.AllDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+                    Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(ci.ImageFile, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
                 } catch(Exception ex) {
                     MessageBox.Show(ex.Message);
                 }
@@ -240,10 +235,10 @@ namespace ImageDeduplicator {
 
 
         private void fileNameRegexSelectorMenuItem_Click(object sender, RoutedEventArgs e) {
-            TextInputDialog dlg = new TextInputDialog("Please provide the regex");
+            TextInputDialog dlg = new TextInputDialog("Please provide the regex", true);
             if (!dlg.ShowDialog().Value)
                 return;
-            comparitor.selectors.Add(new FileNameRegexSelectionCriteria(dlg.GetInput()));
+            comparitor.selectors.Add(new FileNameRegexSelectionCriteria(dlg.GetInput(), dlg.GetInvert()));
             Properties.Settings.Default.Save();
         }
 
@@ -259,14 +254,98 @@ namespace ImageDeduplicator {
         }
 
         private void pathRegexSelectorMenuItem_Click(object sender, RoutedEventArgs e) {
-            TextInputDialog dlg = new TextInputDialog("Please provide the regex");
+            TextInputDialog dlg = new TextInputDialog("Please provide the regex", true);
             if (!dlg.ShowDialog().Value)
                 return;
-            comparitor.selectors.Add(new PathRegexSelectionCriteria(dlg.GetInput()));
+            comparitor.selectors.Add(new PathRegexSelectionCriteria(dlg.GetInput(), dlg.GetInvert()));
             Properties.Settings.Default.Save();
 
         }
+
+        private void lossyFIleFormatSelectorMenuItem_Click(object sender, RoutedEventArgs e) {
+            comparitor.selectors.Add(new LossyFileFormatSelectionCriteria());
+            Properties.Settings.Default.Save();
+        }
         #endregion
+
+        bool adjusting_scroll = false;
+        private void setScrollPositions(double x, double y, ScrollViewer sv = null) {
+            if (adjusting_scroll)
+                return;
+
+            adjusting_scroll = true;
+            try {
+                foreach (ScrollViewer view in Utilities.FindVisualChildren<ScrollViewer>(imageViewer)) {
+                    if (view == sv)
+                        continue;
+
+                    if (x == 0 || Double.IsNaN(x)) {
+                        view.ScrollToHorizontalOffset(0);
+                    } else {
+                        view.ScrollToHorizontalOffset(view.ScrollableWidth * x);
+                    }
+                    if (y == 0 || Double.IsNaN(y)) {
+                        view.ScrollToVerticalOffset(0);
+                    } else {
+                        view.ScrollToVerticalOffset(view.ScrollableHeight * y);
+                    }
+                }
+            } finally {
+                adjusting_scroll = false;
+            }
+        }
+        private void imageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
+            ScrollViewer sv = (ScrollViewer)sender;
+            double x = sv.HorizontalOffset / sv.ScrollableWidth; 
+            double y = sv.VerticalOffset/ sv.ScrollableHeight; 
+
+            setScrollPositions(x, y, sv);
+        }
+
+
+        private void previewImage_MouseWheel(object sender, MouseWheelEventArgs e) {
+            ScrollViewer sv = Utilities.FindParent<ScrollViewer>((Image)sender);
+            double x = sv.HorizontalOffset / sv.ScrollableWidth; 
+            double y = sv.VerticalOffset / sv.ScrollableHeight; 
+
+            int zoom = ComparisonResult.ZoomLevel;
+            zoom += e.Delta/20;
+            foreach (Image img in Utilities.FindVisualChildren<Image>(imageViewer)) {
+                ComparisonResult cr = (ComparisonResult)img.DataContext;
+                cr.Zoom = zoom;
+            }
+
+            setScrollPositions(x, y);
+
+            e.Handled = true;
+        }
+
+
+
+        private void previewImage_MouseRightButtonUp(object sender, MouseButtonEventArgs e) {
+            if (!comparisonSet.ScaleImage) {
+                Image img = (Image)sender;
+                ScrollViewer sv = Utilities.FindParent<ScrollViewer>((Image)sender);
+                Point p = e.GetPosition(img);
+
+
+                double x = p.X / img.Width;
+                double y = p.Y / img.Height;
+
+                ComparisonResult.ZoomLevel = 100;
+                comparisonSet.ScaleImage = !comparisonSet.ScaleImage;
+                setScrollPositions(x, y);
+
+            } else {
+                ComparisonResult.ZoomLevel = 100;
+                comparisonSet.ScaleImage = !comparisonSet.ScaleImage;
+            }
+
+
+
+
+        }
+
 
     }
 }

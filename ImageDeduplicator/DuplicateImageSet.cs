@@ -9,33 +9,69 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace ImageDeduplicator {
-    public class DuplicateImageSet: ObservableCollection<ComparableImage>, INotifyPropertyChanged {
+    public class DuplicateImageSet: ObservableCollection<ComparisonResult>, INotifyPropertyChanged {
         public BitmapImage Thumbnail {
             get {
-                return this.First<ComparableImage>().Thumbnail;
+                return this.First<ComparisonResult>().Image.Thumbnail;
             }
         }
 
         public DuplicateImageSet(ComparableImage starter_image) {
-            starter_image.ComparisonResult = Comparitor.MAX_COMPARISON_RESULT;
             starter_image.CurrentDuplicateSet = this;
-            this.Add(starter_image);
+            this.Add(new ComparisonResult {
+                Image = starter_image,
+                Result = Comparitor.MAX_COMPARISON_RESULT
+            });
+        }
+
+        public bool ContainsImage(ComparableImage ci) {
+            
+            foreach (ComparisonResult cr in this) {
+                if (cr.Image == ci) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public List<ComparableImage> GetImages() {
+            List<ComparableImage> output = new List<ComparableImage>();
+            foreach(ComparisonResult cr in this) {
+                output.Add(cr.Image);
+            }
+            return output;
+        }
+
+        public void RemoveImage(ComparableImage ci) {
+            ComparisonResult cr = GetImageResult(ci);
+            this.Remove(cr);
+        }
+
+        public ComparisonResult GetImageResult(ComparableImage ci) {
+            foreach (ComparisonResult cr in this) {
+                if (cr.Image == ci) {
+                    return cr;
+                }
+            }
+            return null;
         }
 
         public void AddImage(ComparableImage image) {
+            image.CurrentDuplicateSet = this;
+
+            ComparisonResult cr = this.First<ComparisonResult>().Image.GetComparisonResultForImage(image);
             int i = 0;
-            for(i = 0; i<this.Count; i++) {
-                if(this[i].ComparisonResult<image.ComparisonResult) {
+            for (i = 0; i<this.Count; i++) {
+                if(this[i].Result < cr.Result) {
                     App.Current.Dispatcher.Invoke((Action)(() => {
-                        this.Insert(i, image);
+                        this.Insert(i, cr);
                     }));
                     return;
                 }
             }
-            image.CurrentDuplicateSet = this;
 
             App.Current.Dispatcher.Invoke((Action)(() => {
-                this.Add(image);
+                this.Add(cr);
             }));
         }
 

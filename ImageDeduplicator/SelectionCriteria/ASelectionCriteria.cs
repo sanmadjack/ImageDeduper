@@ -12,6 +12,11 @@ namespace ImageDeduplicator.SelectionCriteria {
         public virtual String Name { get; set; }
 
         public void PerformSelection(List<ComparableImage> images) {
+            foreach (ComparableImage image in images) {
+                if (image.Selected) // Don't screw with existing selections
+                    return;
+            }
+
             PerformSelectionInternal(images);
         }
 

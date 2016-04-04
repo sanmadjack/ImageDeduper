@@ -103,9 +103,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ComparisonResult.cs" />
+    <Compile Include="Identifiers\ScaledDifferenceIdentifier.cs" />
     <Compile Include="SelectionCriteria\AEvaluatingSelectionCriteria.cs" />
     <Compile Include="SelectionCriteria\AComparingSelectionCriteria.cs" />
     <Compile Include="SelectionCriteria\ASelectionCriteria.cs" />
+    <Compile Include="SelectionCriteria\LossyFileFormatSelectionCriteria.cs" />
     <Compile Include="SelectionCriteria\FileNameRegexSelectionCriteria.cs" />
     <Compile Include="SelectionCriteria\PathRegexSelectionCriteria.cs" />
     <Compile Include="SelectionCriteria\ParentDirectorySelectionCriteria.cs" />
@@ -115,6 +118,7 @@
     <Compile Include="TextInputDialog.xaml.cs">
       <DependentUpon>TextInputDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utilities.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

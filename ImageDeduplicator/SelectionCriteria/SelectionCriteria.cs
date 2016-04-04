@@ -21,6 +21,18 @@ namespace ImageDeduplicator.SelectionCriteria {
             foreach(ASelectionCriteria sc in this) {
                 sc.PerformSelection(images);
             }
+
+            int selected = 0;
+            foreach (ComparableImage image in images) {
+                if (image.Selected)
+                    selected++;
+            }
+            if (selected == images.Count) { // Need to better handle everything being selected, for now we just de-select everything
+                foreach (ComparableImage image in images) {
+                    image.Selected = false; 
+                }
+            }
+
         }
 
     }
