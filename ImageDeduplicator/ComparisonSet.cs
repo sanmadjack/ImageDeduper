@@ -24,7 +24,8 @@ namespace ImageDeduplicator {
 
         public void AddImage(ComparisonResult cr) {
             if (HasTempImage) {
-                this.RemoveAt(0);
+                if(this.Count>0)
+                    this.RemoveAt(0);
                 HasTempImage = false;
             }
 

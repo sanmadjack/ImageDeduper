@@ -9,6 +9,9 @@ using System.IO;
 
 namespace ImageDeduplicator {
     public class ComparisonResult : INotifyPropertyChanged {
+        public double ResultString {
+            get { return Math.Round(Result, 2); }
+        }
         public double Result {
             get; set;
         }
@@ -55,7 +58,7 @@ namespace ImageDeduplicator {
                         bitmap.Freeze();
                         return bitmap;
                     }
-                } catch (System.IO.DirectoryNotFoundException ex) {
+                } catch (System.IO.IOException ex) {
                     // Do something!
                     return null;
                 }

@@ -11,6 +11,20 @@ namespace ImageDeduplicator.SelectionCriteria {
         [XmlIgnore]
         public virtual String Name { get; set; }
 
+
+        private bool _Enabled = true;
+        public bool Enabled { get {
+                return _Enabled;
+            }
+            set {
+                _Enabled = value;
+                Properties.Settings.Default.Save();
+            }
+        }
+
+        public ASelectionCriteria() {
+        }
+
         public void PerformSelection(List<ComparableImage> images) {
             foreach (ComparableImage image in images) {
                 if (image.Selected) // Don't screw with existing selections

@@ -20,6 +20,7 @@ namespace ImageDeduplicator.SelectionCriteria {
         }
         private DirectoryInfo dir;
 
+        [XmlIgnore]
         public override string Name {
             get {
                 return "Parent Directory: " + Path;

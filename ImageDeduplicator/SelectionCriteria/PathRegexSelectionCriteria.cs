@@ -24,6 +24,7 @@ namespace ImageDeduplicator.SelectionCriteria {
         public bool Invert {
             get; set;
         }
+        [XmlIgnore]
         public override string Name {
             get {
                 StringBuilder output = new StringBuilder();

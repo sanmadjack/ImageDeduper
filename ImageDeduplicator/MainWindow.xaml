@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageDeduplicator"
         mc:Ignorable="d"
-        Title="MainWindow" Height="540.789" Width="839.474">
+        Title="MainWindow" Height="540.789" Width="839.474" Drop="RibbonWindow_Drop" AllowDrop="True">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo Description="An app with a taskbar info description" 
                      ProgressValue="{Binding LoadProgressDouble, Mode=OneWay}" ProgressState="Normal"/>
@@ -32,6 +32,7 @@
                     <RibbonButton Name="moveButton" Label="Move" Click="moveButton_Click" />
                 </RibbonGroup>
                 <RibbonGroup Header="View">
+                    <RibbonButton Name="clearComparisonButton" Label="Clear Comparison" Click="clearComparisonButton_Click" />
                 </RibbonGroup>
             </RibbonTab>
         </Ribbon>
@@ -87,7 +88,7 @@
                                             Height="{Binding ElementName=thumbnailZoomSlider, Path=Value}" />
 
                                             </Border>
-                                            <Label Grid.Row="1" Content="{Binding Result}" />
+                                            <Label Grid.Row="1" Content="{Binding ResultString}" />
                                         </Grid>
 
                                     </DataTemplate>
@@ -134,6 +135,7 @@
                         <Label>TEST</Label>
                         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ScrollChanged="imageScrollViewer_ScrollChanged"
                                       Name="imageScrollViewer" Background="Black"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <Border Height="Auto" Width="Auto" Background="White" >
                             <Image  Name="previewImage" 
                                    Source="{Binding FullBitmapImage, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" 
                                     MouseRightButtonUp="previewImage_MouseRightButtonUp" MouseWheel="previewImage_MouseWheel">
@@ -151,6 +153,7 @@
                                 </Image.Style>
 
                             </Image>
+                            </Border>
                         </ScrollViewer>
                         <Label Content="{Binding Image.ImageFileName}" Grid.Row="1" Background="White" />
                         <WrapPanel  Orientation="Horizontal"  Background="White"  Grid.Row="2">
@@ -164,7 +167,7 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Label>Similarity</Label>
-                                <Label Content="{Binding Result}"  Background="White" />
+                                <Label Content="{Binding ResultString}"  Background="White" />
                             </StackPanel>
                         </WrapPanel>
                     </Grid>
@@ -175,6 +178,7 @@
         <StatusBar Grid.Row="2" Grid.ColumnSpan="4">
             <ProgressBar Value="{Binding LoadProgress, Mode=OneWay}" Height="20" Width="300" Name="loadingProgress" />
             <Label Content="{Binding LoadProgressText, Mode=OneWay}" />
+            <Label Content="{Binding CurrentDirectory, Mode=OneWay}" />
         </StatusBar>
         <Expander x:Name="expander" Grid.Column="4" Grid.Row="1"  ExpandDirection="Left" >
             <Expander.Header>
@@ -200,7 +204,10 @@
                 <ListView Width="200" Grid.Row="0" Grid.ColumnSpan="4" Name="selectorList" ItemsSource="{Binding}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Label Content="{Binding Name}" />
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox IsChecked="{Binding Enabled}" />
+                                <Label Content="{Binding Name}" />
+                            </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>

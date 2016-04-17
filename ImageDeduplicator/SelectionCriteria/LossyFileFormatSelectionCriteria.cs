@@ -11,6 +11,7 @@ namespace ImageDeduplicator.SelectionCriteria {
     [Serializable]
     [System.Xml.Serialization.XmlRoot("file_name_regex")]
     public class LossyFileFormatSelectionCriteria : AEvaluatingSelectionCriteria {
+        [XmlIgnore]
         public override string Name {
             get {
                 return "Lossy File Format";

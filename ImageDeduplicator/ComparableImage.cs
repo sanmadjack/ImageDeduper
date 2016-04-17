@@ -169,47 +169,50 @@ namespace ImageDeduplicator {
 
         private int GeneratedThumbnailSize = -1;
         private void UpdateThumbnail(Image image) {
-            int height = Properties.Settings.Default.ThumbnailHeight;
+            try {
 
-            if (height == GeneratedThumbnailSize)
-                return;
+                int height = Properties.Settings.Default.ThumbnailHeight;
 
-            double old_height = image.Height;
-            double old_width = image.Width;
-            double ratio = height / old_height;
-            int new_width = (int)Math.Round(ratio * image.Width);
+                if (height == GeneratedThumbnailSize)
+                    return;
 
-            using (Image thumbNail = new Bitmap(new_width, height, System.Drawing.Imaging.PixelFormat.Format32bppPArgb)) {
-                using (Graphics g = Graphics.FromImage(thumbNail)) {
-                    g.CompositingQuality = CompositingQuality.HighQuality;
-                    g.SmoothingMode = SmoothingMode.HighQuality;
-                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    Rectangle rect = new Rectangle(0, 0, new_width, height);
-                    g.DrawImage(image, rect);
+                double old_height = image.Height;
+                double old_width = image.Width;
+                double ratio = height / old_height;
+                int new_width = (int)Math.Round(ratio * image.Width);
+
+                using (Image thumbNail = new Bitmap(new_width, height, System.Drawing.Imaging.PixelFormat.Format32bppPArgb)) {
+                    using (Graphics g = Graphics.FromImage(thumbNail)) {
+                        g.CompositingQuality = CompositingQuality.HighQuality;
+                        g.SmoothingMode = SmoothingMode.HighQuality;
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        Rectangle rect = new Rectangle(0, 0, new_width, height);
+                        g.DrawImage(image, rect);
+                    }
+                    using (MemoryStream ms = new MemoryStream()) {
+                        thumbNail.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+
+                        this._thumbImage = null;
+                        GeneratedThumbnailSize = height;
+
+                        ms.Seek(0, SeekOrigin.Begin);
+                        BitmapImage bi = new BitmapImage();
+                        bi.BeginInit();
+                        bi.CacheOption = BitmapCacheOption.OnLoad;
+                        bi.StreamSource = ms;
+                        bi.EndInit();
+                        bi.Freeze();
+                        _thumbImage = bi;
+                        NotifyPropertyChanged("Thumbnail");
+                    }
                 }
-                using (MemoryStream ms = new MemoryStream()) {
-                    thumbNail.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-
-                    this._thumbImage = null;
-                    GeneratedThumbnailSize = height;
-
-                    ms.Seek(0, SeekOrigin.Begin);
-                    BitmapImage bi = new BitmapImage();
-                    bi.BeginInit();
-                    bi.CacheOption = BitmapCacheOption.OnLoad;
-                    bi.StreamSource = ms;
-                    bi.EndInit();
-                    bi.Freeze();
-                    _thumbImage = bi;
-                    NotifyPropertyChanged("Thumbnail");
-                }
+            }catch(Exception e) {
+                Console.Out.WriteLine(e.Message);
             }
 
         }
 
         public double CompareImage(ComparableImage ci) {
-            if (ci.ImageFile.Contains("379955")&& this.ImageFile.Contains("379953"))
-                Console.Out.WriteLine("test");
 
             if (ci.FileHash.IsMatch(this.FileHash))
                 return Comparitor.MAX_COMPARISON_RESULT;

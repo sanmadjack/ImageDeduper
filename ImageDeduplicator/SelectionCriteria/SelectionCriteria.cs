@@ -19,7 +19,8 @@ namespace ImageDeduplicator.SelectionCriteria {
                     return;
             }
             foreach(ASelectionCriteria sc in this) {
-                sc.PerformSelection(images);
+                if(sc.Enabled)
+                    sc.PerformSelection(images);
             }
 
             int selected = 0;

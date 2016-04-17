@@ -25,6 +25,8 @@ namespace ImageDeduplicator.SelectionCriteria {
         public bool Invert {
             get; set;
         }
+
+        [XmlIgnore]
         public override string Name {
             get {
                 StringBuilder output = new StringBuilder();
@@ -48,9 +50,9 @@ namespace ImageDeduplicator.SelectionCriteria {
 
         protected override bool DetermineIfSelectable(ComparableImage image) {
             if (Invert) {
-                return !regex.IsMatch(image.ImageFile);
+                return !regex.IsMatch(image.ImageFileName);
             } else {
-                return regex.IsMatch(image.ImageFile);
+                return regex.IsMatch(image.ImageFileName);
             }
         }
     }

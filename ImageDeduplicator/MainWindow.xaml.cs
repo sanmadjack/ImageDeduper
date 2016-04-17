@@ -25,7 +25,7 @@ namespace ImageDeduplicator {
     public partial class MainWindow : RibbonWindow {
 
 
-      Comparitor comparitor = new Comparitor();
+        Comparitor comparitor = new Comparitor();
         public MainWindow() {
             InitializeComponent();
             this.DataContext = comparitor;
@@ -39,12 +39,27 @@ namespace ImageDeduplicator {
 
         private void setFoldeRButton_Click(object sender, RoutedEventArgs e) {
             if (setDownloadFolder()) {
-                comparitor.Reset();
-                comparitor.LoadDirectoryAsync(Properties.Settings.Default.LastDownloadDir, false);
+                loadFolder(Properties.Settings.Default.LastDownloadDir);
             }
         }
 
-        private string ChooseFolder(string start_dir) {
+        private void loadFolder(string folder) {
+            comparitor.Reset();
+            comparitor.LoadDirectoryAsync(folder, true);
+            Properties.Settings.Default.LastDownloadDir = folder;
+            Properties.Settings.Default.Save();
+        }
+
+
+        private string ChooseFolder(string start_dir) { 
+            if(start_dir!=null) {
+                DirectoryInfo di = new DirectoryInfo(start_dir);
+                while(!di.Exists) {
+                    di = di.Parent;
+                }
+                start_dir = di.FullName;
+            }
+
             CommonOpenFileDialog dlg = new CommonOpenFileDialog();
             dlg.Title = "Select folder";
             dlg.IsFolderPicker = true;
@@ -72,6 +87,7 @@ namespace ImageDeduplicator {
 
             Properties.Settings.Default.LastDownloadDir = selected_dir;
             Properties.Settings.Default.Save();
+
             return true;
         }
 
@@ -346,6 +362,25 @@ namespace ImageDeduplicator {
 
         }
 
+        private void clearComparisonButton_Click(object sender, RoutedEventArgs e) {
+            lock(this.comparisonSet) {
+                this.comparisonSet.Clear();
+            }
+        }
 
+        private void RibbonWindow_Drop(object sender, DragEventArgs e) {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+                // Note that you can have more than one file.
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+                // Assuming you have one file that you care about, pass it off to whatever
+                // handling code you have defined.
+                if (files.Length > 0) {
+                    FileAttributes attr = File.GetAttributes(files[0]);
+                    if ((attr & FileAttributes.Directory) == FileAttributes.Directory) 
+                        loadFolder(files[0]);
+                }
+            }
+        }
     }
 }

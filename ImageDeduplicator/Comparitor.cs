@@ -23,6 +23,17 @@ namespace ImageDeduplicator {
             }
         }
 
+        private string _CurrentDirectory = "";
+        public string CurrentDirectory { get {
+                return _CurrentDirectory;
+            }
+            set {
+                this._CurrentDirectory = value;
+                NotifyPropertyChanged("CurrentDirectory");
+            }
+        }
+
+
         public const double MAX_COMPARISON_RESULT = 100;
 
         public String LoadProgressText {
@@ -31,6 +42,11 @@ namespace ImageDeduplicator {
                 output.Append(images.Count);
                 output.Append("/");
                 output.Append(ImagesToLoad.Count + ImagesToCompare.Count + images.Count);
+                if(this.Count>0) {
+                    output.Append(" - ");
+                    output.Append(this.Count.ToString());
+                    output.Append(" Duplicate Groups Found");
+                }
                 return output.ToString();
             }
         }
@@ -198,6 +214,7 @@ namespace ImageDeduplicator {
         }
 
         public async void LoadDirectoryAsync(string dir, bool recursive) {
+            this.CurrentDirectory = dir;
             await Task.Run(() => {
                 List<ComparableImage> images = LoadDirectoryInternal(dir, recursive);
 
@@ -209,7 +226,8 @@ namespace ImageDeduplicator {
 
                 SendProgressUpdate();
                 foreach (BackgroundWorker worker in this.imageLoadWorkers) {
-                    worker.RunWorkerAsync();
+                    if(!worker.IsBusy)
+                        worker.RunWorkerAsync();
                 }
             });
         }
@@ -298,7 +316,7 @@ namespace ImageDeduplicator {
                 lock (dis) {
                     dis.RemoveImage(ci);
                     lock (this) {
-                        if (this.Contains(dis)) {
+                        if (this.Contains(dis)&&dis.Count==1) {
                             this.Remove(dis);
                         }
                     }
@@ -312,6 +330,7 @@ namespace ImageDeduplicator {
                 if (this.images.Contains(ci))
                     this.images.Remove(ci);
             }
+            SendProgressUpdate();
         }
 
         Mutex comparisonMutex = new Mutex();
