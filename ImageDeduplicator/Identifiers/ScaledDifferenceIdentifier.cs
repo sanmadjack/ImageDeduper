@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 namespace ImageDeduplicator.Identifiers {
     class ScaledDifferenceIdentifer : AIdentifier {
         public const double SCALED_IMAGE_SIZE = 16;
-        private const int MAX_MATCH_VARIANCE = 10;
+        private const int MAX_MATCH_VARIANCE = 30;
         private const long MAX_TOTAL_DEVIANCE = MAX_MATCH_VARIANCE * (long)SCALED_IMAGE_SIZE * (long)SCALED_IMAGE_SIZE * 4;
 
         private Bitmap scaled_image;

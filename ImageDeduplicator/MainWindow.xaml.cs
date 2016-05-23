@@ -52,7 +52,7 @@ namespace ImageDeduplicator {
 
 
         private string ChooseFolder(string start_dir) { 
-            if(start_dir!=null) {
+            if(!String.IsNullOrWhiteSpace(start_dir)) {
                 DirectoryInfo di = new DirectoryInfo(start_dir);
                 while(!di.Exists) {
                     di = di.Parent;
