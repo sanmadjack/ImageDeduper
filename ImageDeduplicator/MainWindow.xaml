@@ -26,10 +26,14 @@
             <RibbonTab Header="Comparison">
                 <RibbonGroup>
                     <RibbonButton Label="Load Folder" Click="setFoldeRButton_Click" Height="18" VerticalAlignment="Bottom" />
+                    <RibbonButton Label="Load File List" Click="setFileListButton_Click" Height="18" VerticalAlignment="Bottom" />
                 </RibbonGroup>
                 <RibbonGroup Header="Actions">
                     <RibbonButton Name="deleteButton" Label="Delete" Click="deleteButton_Click" />
                     <RibbonButton Name="moveButton" Label="Move" Click="moveButton_Click" />
+                </RibbonGroup>
+                <RibbonGroup Header="Options">
+                    <RibbonCheckBox IsChecked="{Binding OnlyDifferentSources}" Label="Only Compare Different Source"  />
                 </RibbonGroup>
                 <RibbonGroup Header="View">
                     <RibbonButton Name="clearComparisonButton" Label="Clear Comparison" Click="clearComparisonButton_Click" />
@@ -186,48 +190,65 @@
                     <Label.LayoutTransform>
                         <RotateTransform Angle="90" />
                     </Label.LayoutTransform>
-                    Auto-Select
+                    Advanced
                 </Label>
             </Expander.Header>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="25" />
-                    <RowDefinition Height="25" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <ListView Width="200" Grid.Row="0" Grid.ColumnSpan="4" Name="selectorList" ItemsSource="{Binding}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox IsChecked="{Binding Enabled}" />
-                                <Label Content="{Binding Name}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-                <Button Name="addSelectorButton" Grid.Row="1" Grid.Column="0" Content="Add" Click="addSelectorButton_Click">
-                    <Button.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Name="fileNameRegexSelectorMenuItem" Header="File Name Regex" Click="fileNameRegexSelectorMenuItem_Click" />
-                            <MenuItem Name="lossyFIleFormatSelectorMenuItem" Header="Lossy File Format" Click="lossyFIleFormatSelectorMenuItem_Click" />
-                            <MenuItem Name="parentDirectorySelectorMenuItem" Header="Parent Directory" Click="parentDirectorySelectorMenuItem_Click" />
-                            <MenuItem Name="pathRegexSelectorMenuItem" Header="Path Regex" Click="pathRegexSelectorMenuItem_Click" />
-                            <MenuItem Name="smallerFileSizeSelectorMenuItem" Header="Smaller File Size" Click="smallerFileSizeSelectorMenuItem_Click" />
-                            <MenuItem Name="smallerPixelCountSelectorMenuItem" Header="Smaller Pixel Count" Click="smallerPixelCountSelectorMenuItem_Click" />
-                        </ContextMenu>
-                    </Button.ContextMenu>
-                </Button>
-                <Button Name="removeSelectorButton" Grid.Row="1" Grid.Column="1" Content="Remove" Click="removeSelectorButton_Click" />
-                <Button Name="upSelectorButton" Grid.Row="1" Grid.Column="2" Content="Up" Click="upSelectorButton_Click" />
-                <Button Name="downSelectorButton" Grid.Row="1" Grid.Column="3" Content="Down" Click="downSelectorButton_Click" />
-                <Button Name="autoSelectButton" Grid.Row="2" Grid.ColumnSpan="4" Content="Auto Select" Click="autoSelectButton_Click" />
-            </Grid>
+            <TabControl>
+                <TabItem Header="Auto-Select">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="25" />
+                            <RowDefinition Height="25" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ListView Width="200" Grid.Row="0" Grid.ColumnSpan="4" Name="selectorList" ItemsSource="{Binding}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox IsChecked="{Binding Enabled}" />
+                                        <Label Content="{Binding Name}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <Button Name="addSelectorButton" Grid.Row="1" Grid.Column="0" Content="Add" Click="addSelectorButton_Click">
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Name="fileNameRegexSelectorMenuItem" Header="File Name Regex" Click="fileNameRegexSelectorMenuItem_Click" />
+                                    <MenuItem Name="lossyFIleFormatSelectorMenuItem" Header="Lossy File Format" Click="lossyFIleFormatSelectorMenuItem_Click" />
+                                    <MenuItem Name="parentDirectorySelectorMenuItem" Header="Parent Directory" Click="parentDirectorySelectorMenuItem_Click" />
+                                    <MenuItem Name="pathRegexSelectorMenuItem" Header="Path Regex" Click="pathRegexSelectorMenuItem_Click" />
+                                    <MenuItem Name="smallerFileSizeSelectorMenuItem" Header="Smaller File Size" Click="smallerFileSizeSelectorMenuItem_Click" />
+                                    <MenuItem Name="smallerPixelCountSelectorMenuItem" Header="Smaller Pixel Count" Click="smallerPixelCountSelectorMenuItem_Click" />
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                        <Button Name="removeSelectorButton" Grid.Row="1" Grid.Column="1" Content="Remove" Click="removeSelectorButton_Click" />
+                        <Button Name="upSelectorButton" Grid.Row="1" Grid.Column="2" Content="Up" Click="upSelectorButton_Click" />
+                        <Button Name="downSelectorButton" Grid.Row="1" Grid.Column="3" Content="Down" Click="downSelectorButton_Click" />
+                        <Button Name="autoSelectButton" Grid.Row="2" Grid.ColumnSpan="4" Content="Auto Select" Click="autoSelectButton_Click" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Sources">
+                    <ListView Width="200" Grid.Row="0" Grid.ColumnSpan="4" Name="sourcesList" ItemsSource="{Binding}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding Locked}" />
+                                    <Label Content="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </TabItem>
+            </TabControl>
+
         </Expander>
     </Grid>
 </RibbonWindow>

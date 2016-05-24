@@ -32,13 +32,20 @@ namespace ImageDeduplicator {
         public bool _Selected = false;
         public bool Selected {
             get { return _Selected; }
-            set { _Selected = value; NotifyPropertyChanged("Selected"); }
+            set {
+                if (this.Source.Locked) {
+                    _Selected = false;
+                } else {
+                    _Selected = value;
+                }
+                NotifyPropertyChanged("Selected");
+            }
         }
 
 
 
 
-        public string SourceFolder { get; private set;  }
+        public ComparibleImageSource Source { get; private set;  }
 
         public DuplicateImageSet CurrentDuplicateSet = null;
 
@@ -63,9 +70,9 @@ namespace ImageDeduplicator {
         HistogramIdentifier Histogram;
         ScaledDifferenceIdentifer Scaled;
 
-        public ComparableImage(string source_folder, string image_file) {
+        public ComparableImage(ComparibleImageSource source, string image_file) {
             this.ImageFile = image_file;
-            this.SourceFolder = source_folder;
+            this.Source = source;
         }
 
         public bool ContainsResultFor(ComparableImage ci) {

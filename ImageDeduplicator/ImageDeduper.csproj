@@ -103,6 +103,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ComparibleImageSource.cs" />
     <Compile Include="ComparisonResult.cs" />
     <Compile Include="Identifiers\ScaledDifferenceIdentifier.cs" />
     <Compile Include="SelectionCriteria\AEvaluatingSelectionCriteria.cs" />

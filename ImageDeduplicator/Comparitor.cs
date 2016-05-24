@@ -12,6 +12,9 @@ using System.Xml.Serialization;
 
 namespace ImageDeduplicator {
     public class Comparitor : ObservableCollection<DuplicateImageSet>, INotifyPropertyChanged {
+        public ObservableCollection<ComparibleImageSource> Sources = new ObservableCollection<ComparibleImageSource>();
+
+
         public double Fuzziness {
             get {
                 return Properties.Settings.Default.Similarity;
@@ -64,6 +67,9 @@ namespace ImageDeduplicator {
             }
         }
 
+        private bool _OnlyDifferentSources = false;
+        public bool OnlyDifferentSources { get { return _OnlyDifferentSources; } set { _OnlyDifferentSources = value; NotifyPropertyChanged("OnlyDifferentSources"); this.Reset(); } }
+
         public int ThumbnailHeight {
             get {
                 return Properties.Settings.Default.ThumbnailHeight;
@@ -111,6 +117,8 @@ namespace ImageDeduplicator {
         }
 
         public void Reset() {
+            lock (Sources)
+                this.Sources.Clear();
             lock(ImagesToLoad) 
                 this.ImagesToLoad.Clear();
             lock(ImagesToCompare)
@@ -187,6 +195,11 @@ namespace ImageDeduplicator {
 
                 try {
                     ci.LoadImage();
+                    lock (Sources) {
+                        if (!Sources.Contains(ci.Source))
+                            Sources.Add(ci.Source);
+                    }
+
                     lock (ImagesToCompare) {
                         ImagesToCompare.Enqueue(ci);
                     }
@@ -216,7 +229,8 @@ namespace ImageDeduplicator {
         public async void LoadDirectoryAsync(string dir, bool recursive) {
             this.CurrentDirectory = dir;
             await Task.Run(() => {
-                List<ComparableImage> images = LoadDirectoryInternal(dir, recursive);
+                ComparibleImageSource imageSource = new ComparibleImageSource(dir);
+                List<ComparableImage> images = LoadDirectoryInternal(dir, imageSource, recursive);
 
                 lock (ImagesToLoad) {
                     foreach (ComparableImage ci in images) {
@@ -232,15 +246,43 @@ namespace ImageDeduplicator {
             });
         }
 
-        private List<ComparableImage> LoadDirectoryInternal(string dir, bool recursive) {
-            List<ComparableImage> images = new List<ComparableImage>();
+        public async void LoadFilesAsync(String source, List<String> files) {
+            await Task.Run(() => {
+                List<ComparableImage> images = new List<ComparableImage>();
+                ComparibleImageSource imageSource = new ComparibleImageSource(source);
+                foreach(String file in files) {
+                    try {
+                        if (File.Exists(file))
+                            images.Add(new ComparableImage(imageSource, file));
+                    
+                    } catch(Exception ex) {
+                        Console.Out.WriteLine(ex.Message);
+                    }
+                }
 
+                lock (ImagesToLoad) {
+                    foreach (ComparableImage ci in images) {
+                        ImagesToLoad.Enqueue(ci);
+                    }
+                }
+
+                SendProgressUpdate();
+                foreach (BackgroundWorker worker in this.imageLoadWorkers) {
+                    if (!worker.IsBusy)
+                        worker.RunWorkerAsync();
+                }
+            });
+        }
+
+
+        private List<ComparableImage> LoadDirectoryInternal(string dir, ComparibleImageSource imageSource, bool recursive) {
+            List<ComparableImage> images = new List<ComparableImage>();
             foreach (string f in Directory.GetFiles(dir)) {
-                images.Add(new ComparableImage(dir, f));
+                images.Add(new ComparableImage(imageSource, f));
             }
             if (recursive) {
                 foreach (string d in Directory.GetDirectories(dir)) {
-                    images.AddRange(LoadDirectoryInternal(d, true));
+                    images.AddRange(LoadDirectoryInternal(d, imageSource, true));
                 }
             }
             return images;
@@ -250,7 +292,12 @@ namespace ImageDeduplicator {
 
         private void CalculateSimilarities(ComparableImage ci) {
             ComparableImage other_image = SafelyGetNextImage(null);
-            while(other_image!=null) { 
+            while(other_image!=null) {
+                if (OnlyDifferentSources && ci.Source == other_image.Source) {
+                    other_image = SafelyGetNextImage(other_image);
+                    continue;
+                }
+
                 if (ci.ImageFile == other_image.ImageFile) { // Same image check
                     other_image = SafelyGetNextImage(other_image);
                     continue;
@@ -288,6 +335,8 @@ namespace ImageDeduplicator {
                     dis = new DuplicateImageSet(cr.Image);
                 } else if (!cr.Image.CurrentDuplicateSet.ContainsImage(image)) {
                     ComparisonResult first = cr.Image.CurrentDuplicateSet.First<ComparisonResult>().Image.GetComparisonResultForImage(image);
+                    if (first == null)
+                        return;
                     if (first.Result < Fuzziness)
                         return;
                     dis = cr.Image.CurrentDuplicateSet;
