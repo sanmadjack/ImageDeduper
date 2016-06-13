@@ -12,7 +12,7 @@ using System.Xml.Serialization;
 
 namespace ImageDeduplicator {
     public class Comparitor : ObservableCollection<DuplicateImageSet>, INotifyPropertyChanged {
-        public ObservableCollection<ComparibleImageSource> Sources = new ObservableCollection<ComparibleImageSource>();
+        public ObservableCollection<AImageSource> Sources = new ObservableCollection<AImageSource>();
 
 
         public double Fuzziness {
@@ -23,16 +23,6 @@ namespace ImageDeduplicator {
                 Properties.Settings.Default.Similarity = value;
                 Properties.Settings.Default.Save();
                 NotifyPropertyChanged("Fuzziness");
-            }
-        }
-
-        private string _CurrentDirectory = "";
-        public string CurrentDirectory { get {
-                return _CurrentDirectory;
-            }
-            set {
-                this._CurrentDirectory = value;
-                NotifyPropertyChanged("CurrentDirectory");
             }
         }
 
@@ -226,11 +216,9 @@ namespace ImageDeduplicator {
             //throw new NotImplementedException();
         }
 
-        public async void LoadDirectoryAsync(string dir, bool recursive) {
-            this.CurrentDirectory = dir;
+        public async void LoadAsync(AImageSource source) {
             await Task.Run(() => {
-                ComparibleImageSource imageSource = new ComparibleImageSource(dir);
-                List<ComparableImage> images = LoadDirectoryInternal(dir, imageSource, recursive);
+                List<ComparableImage> images = source.getImages();
 
                 lock (ImagesToLoad) {
                     foreach (ComparableImage ci in images) {
@@ -246,19 +234,9 @@ namespace ImageDeduplicator {
             });
         }
 
-        public async void LoadFilesAsync(String source, List<String> files) {
+        public async void LoadFilesAsync(AImageSource source) {
             await Task.Run(() => {
-                List<ComparableImage> images = new List<ComparableImage>();
-                ComparibleImageSource imageSource = new ComparibleImageSource(source);
-                foreach(String file in files) {
-                    try {
-                        if (File.Exists(file))
-                            images.Add(new ComparableImage(imageSource, file));
-                    
-                    } catch(Exception ex) {
-                        Console.Out.WriteLine(ex.Message);
-                    }
-                }
+                List<ComparableImage> images = source.getImages();
 
                 lock (ImagesToLoad) {
                     foreach (ComparableImage ci in images) {
@@ -273,22 +251,6 @@ namespace ImageDeduplicator {
                 }
             });
         }
-
-
-        private List<ComparableImage> LoadDirectoryInternal(string dir, ComparibleImageSource imageSource, bool recursive) {
-            List<ComparableImage> images = new List<ComparableImage>();
-            foreach (string f in Directory.GetFiles(dir)) {
-                images.Add(new ComparableImage(imageSource, f));
-            }
-            if (recursive) {
-                foreach (string d in Directory.GetDirectories(dir)) {
-                    images.AddRange(LoadDirectoryInternal(d, imageSource, true));
-                }
-            }
-            return images;
-        }
-
-
 
         private void CalculateSimilarities(ComparableImage ci) {
             ComparableImage other_image = SafelyGetNextImage(null);
@@ -397,7 +359,8 @@ namespace ImageDeduplicator {
                             ci.CurrentDuplicateSet = null;
                             ci.Selected = false;
                             //ci.ClearSimilarImages();
-                            ImagesToCompare.Enqueue(ci);
+                            if(File.Exists(ci.ImageFile))
+                                ImagesToCompare.Enqueue(ci);
                         }
                         this.images.Clear();
                     }

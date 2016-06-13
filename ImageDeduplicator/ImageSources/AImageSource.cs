@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ImageDeduplicator {
-    public class ComparibleImageSource: INotifyPropertyChanged {
+    public abstract class AImageSource: INotifyPropertyChanged {
         private String _Name;
         public String Name { get { return _Name; } set { _Name = value; NotifyPropertyChanged("Name"); } }
         private bool _Locked = false;
@@ -15,9 +15,19 @@ namespace ImageDeduplicator {
             set { _Locked = value; NotifyPropertyChanged("Locked"); }
         }
 
-        public ComparibleImageSource(String name) {
+        public AImageSource(String name) {
             this.Name = name;
         }
+
+        public virtual List<ComparableImage> getImages() {
+            List<ComparableImage> output = new List<ComparableImage>();
+            foreach(String file in getImagesInternal()) {
+                output.Add(new ComparableImage(this, file));
+            }
+            return output;
+        }
+
+        protected abstract List<String> getImagesInternal();
 
 
         #region INotify Implementation

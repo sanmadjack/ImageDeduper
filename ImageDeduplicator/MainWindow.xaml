@@ -25,8 +25,9 @@
         <Ribbon Grid.Row="0" Grid.Column="0" x:Name="ribbon" SelectedIndex="1" Grid.ColumnSpan="4" >
             <RibbonTab Header="Comparison">
                 <RibbonGroup>
-                    <RibbonButton Label="Load Folder" Click="setFoldeRButton_Click" Height="18" VerticalAlignment="Bottom" />
-                    <RibbonButton Label="Load File List" Click="setFileListButton_Click" Height="18" VerticalAlignment="Bottom" />
+                    <RibbonButton Label="Load Folder" Tag="folder" Click="loadImages_Click"  Height="18" VerticalAlignment="Bottom" />
+                    <RibbonButton Label="Load File List"  Tag="file_list" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
+                    <RibbonButton Label="Load From Database"  Tag="database" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                 </RibbonGroup>
                 <RibbonGroup Header="Actions">
                     <RibbonButton Name="deleteButton" Label="Delete" Click="deleteButton_Click" />
@@ -159,7 +160,7 @@
                             </Image>
                             </Border>
                         </ScrollViewer>
-                        <Label Content="{Binding Image.ImageFileName}" Grid.Row="1" Background="White" />
+                        <Label Content="{Binding Image.DisplayName}" Grid.Row="1" Background="White" />
                         <WrapPanel  Orientation="Horizontal"  Background="White"  Grid.Row="2">
                             <StackPanel Orientation="Horizontal">
                                 <Label>File Size</Label>

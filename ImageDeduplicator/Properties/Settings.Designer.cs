@@ -93,5 +93,16 @@ namespace ImageDeduplicator.Properties {
                 this["SelectionCriteria"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection connectionStrings {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["connectionStrings"]));
+            }
+            set {
+                this["connectionStrings"] = value;
+            }
+        }
     }
 }

@@ -13,6 +13,16 @@ using System.Windows.Media.Imaging;
 
 namespace ImageDeduplicator {
     public class ComparableImage : INotifyPropertyChanged, IComparable {
+        public string DisplayName { get {
+                if (String.IsNullOrWhiteSpace(AlternativeName))
+                    return ImageFileName;
+                else
+                    return ImageFileName + " - " + AlternativeName;
+            }
+        }
+
+        private String AlternativeName = "";
+
         public string ImageFile { get; private set; }
         public string ImageFileName { get; private set; }
         public int ImageHeight { get; private set; }
@@ -45,7 +55,7 @@ namespace ImageDeduplicator {
 
 
 
-        public ComparibleImageSource Source { get; private set;  }
+        public AImageSource Source { get; private set;  }
 
         public DuplicateImageSet CurrentDuplicateSet = null;
 
@@ -70,9 +80,10 @@ namespace ImageDeduplicator {
         HistogramIdentifier Histogram;
         ScaledDifferenceIdentifer Scaled;
 
-        public ComparableImage(ComparibleImageSource source, string image_file) {
+        public ComparableImage(AImageSource source, string image_file, String alternativeName = "") {
             this.ImageFile = image_file;
             this.Source = source;
+            this.AlternativeName = alternativeName;
         }
 
         public bool ContainsResultFor(ComparableImage ci) {

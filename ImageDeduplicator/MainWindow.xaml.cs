@@ -16,7 +16,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Windows.Controls.Ribbon;
 using System.Collections.ObjectModel;
 using System.IO;
-using Microsoft.VisualBasic.FileIO;
+using ImageDeduplicator.ImageSources;
 using ImageDeduplicator.SelectionCriteria;
 
 namespace ImageDeduplicator {
@@ -39,64 +39,64 @@ namespace ImageDeduplicator {
             sourcesList.DataContext = comparitor.Sources;
         }
 
-        private void setFoldeRButton_Click(object sender, RoutedEventArgs e) {
-            if (setDownloadFolder()) {
-                loadFolder(Properties.Settings.Default.LastDownloadDir);
-            }
-        }
-        private void setFileListButton_Click(object sender, RoutedEventArgs e) {
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-            dlg.DefaultExt = ".txt|.csv";
-            dlg.Filter = "Text File (*.txt)|*.txt|CSV File (*.csv)|*.csv";
-
-            Nullable<bool> result = dlg.ShowDialog();
-
-            if (result==true) {
-                loadFileList(dlg.FileName);
-            }
-        }
-
-
-        private void loadFolder(string folder) {
-            if (MessageBox.Show("Do you want to clear the current comparison?", "Clear comparison", MessageBoxButton.YesNo) == MessageBoxResult.Yes) {
-                comparitor.Reset();
-            }
-            comparitor.LoadDirectoryAsync(folder, true);
-            Properties.Settings.Default.LastDownloadDir = folder;
-            Properties.Settings.Default.Save();
-        }
-        private void loadFileList(string file_list) {
-            if (MessageBox.Show("Do you want to clear the current comparison?", "Clear comparison", MessageBoxButton.YesNo) == MessageBoxResult.Yes) {
-                comparitor.Reset();
-            }
-
-            FileInfo fi = new FileInfo(file_list);
-            if (fi.Extension.ToLower() == ".txt") {
-                List<String> filesToLoad = new List<string>();
-                using (StreamReader reader = fi.OpenText()) {
-                    filesToLoad.Add(reader.ReadLine());
-                }
-                loadFiles(fi.FullName, filesToLoad);
-            }
-            if (fi.Extension.ToLower() == ".csv") {
-                List<String[]> data = parseCSV(fi.FullName);
-                List<String> filesToLoad = new List<string>();
-                foreach (String[] line in data) {
-                    foreach (String field in line) {
-                        filesToLoad.Add(field);
+        private void loadImages_Click(object sender, RoutedEventArgs e) {
+            Control cont = (Control)sender;
+            String arg = "";
+            switch (cont.Tag.ToString()) {
+                case "folder":
+                    if (setDownloadFolder()) {
+                        arg = Properties.Settings.Default.LastDownloadDir;
+                    } else {
+                        return;
                     }
-                }
-                loadFiles(fi.FullName, filesToLoad);
+                    break;
+                case "file_list":
+                    Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+                    dlg.DefaultExt = ".txt|.csv";
+                    dlg.Filter = "Text File (*.txt)|*.txt|CSV File (*.csv)|*.csv";
+
+                    Nullable<bool> result = dlg.ShowDialog();
+
+                    if (result == true) {
+                        arg = dlg.FileName;
+                    } else {
+                        return;
+                    }
+                    break;
             }
+            loadImages(cont.Tag.ToString(), arg);
+        }
+
+        private void loadImages(String method, String arg = null) {
+            AImageSource source;
+            switch (method) {
+                case "folder":
+                    source = new FolderImageSource(arg);
+                    break;
+                case "file_list":
+                    source = new TextFileImageSource(arg);
+                    break;
+                case "database":
+                    DatabaseSourceEntry entry = new DatabaseSourceEntry();
+                    if (!entry.ShowDialog().Value)
+                        return;
+                    source = entry.getImageSource();
+                    break;
+                default:
+                    return;
+            }
+            MessageBoxResult result = MessageBox.Show(this, "Do you want to clear the current comparison?", "Clear comparison", MessageBoxButton.YesNoCancel);
+            switch(result) {
+                case MessageBoxResult.Cancel:
+                    return;
+                case MessageBoxResult.Yes:
+                    comparitor.Reset();
+                    break;
+            }
+            comparitor.LoadFilesAsync(source);
 
         }
 
-        private void loadFiles(String source, List<String> files) {
-            if (MessageBox.Show("Do you want to clear the current comparison?", "Clear comparison", MessageBoxButton.YesNo) == MessageBoxResult.Yes) {
-                comparitor.Reset();
-            }
-            comparitor.LoadFilesAsync(source, files);
-        }
 
         private string ChooseFolder(string start_dir) { 
             if(!String.IsNullOrWhiteSpace(start_dir)) {
@@ -425,11 +425,11 @@ namespace ImageDeduplicator {
                 if (files.Length > 0) {
                     FileAttributes attr = File.GetAttributes(files[0]);
                     if ((attr & FileAttributes.Directory) == FileAttributes.Directory) {
-                        loadFolder(files[0]);
+                        loadImages("folder",files[0]);
                     } else {
                         try {
                             FileInfo fi = new FileInfo(files[0]);
-                            loadFileList(fi.FullName);
+                            loadImages("file_list", fi.FullName);
                         } catch (Exception ex) {
                             Console.Out.WriteLine(ex.Message);
                         }
@@ -438,27 +438,6 @@ namespace ImageDeduplicator {
             }
         }
 
-        public List<String[]> parseCSV(string path) {
-            List<string[]> parsedData = new List<string[]>();
-            string[] fields;
 
-            try {
-                TextFieldParser parser = new TextFieldParser(path);
-                parser.TextFieldType = FieldType.Delimited;
-                parser.SetDelimiters(",");
-
-                while (!parser.EndOfData) {
-                    fields = parser.ReadFields();
-                    parsedData.Add(fields);
-                }
-
-                parser.Close();
-
-            } catch (Exception e) {
-                MessageBox.Show(e.Message);
-            }
-
-            return parsedData;
-        }
     }
 }
