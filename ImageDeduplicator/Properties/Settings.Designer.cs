@@ -104,5 +104,29 @@ namespace ImageDeduplicator.Properties {
                 this["connectionStrings"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastQuery {
+            get {
+                return ((string)(this["LastQuery"]));
+            }
+            set {
+                this["LastQuery"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastQueryName {
+            get {
+                return ((string)(this["LastQueryName"]));
+            }
+            set {
+                this["LastQueryName"] = value;
+            }
+        }
     }
 }

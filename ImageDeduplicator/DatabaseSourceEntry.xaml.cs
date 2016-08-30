@@ -20,6 +20,8 @@ namespace ImageDeduplicator {
     public partial class DatabaseSourceEntry : Window {
         public DatabaseSourceEntry() {
             InitializeComponent();
+            this.queryText.Text = Properties.Settings.Default.LastQuery;
+            this.nameText.Text = Properties.Settings.Default.LastQueryName;
         }
 
         public AImageSource getImageSource() {
@@ -42,6 +44,8 @@ namespace ImageDeduplicator {
                         break;
                 }
             }
+            Properties.Settings.Default.LastQuery = this.queryText.Text;
+            Properties.Settings.Default.LastQueryName = this.nameText.Text;
             Properties.Settings.Default.Save();
             this.DialogResult = true;
             this.Close();
