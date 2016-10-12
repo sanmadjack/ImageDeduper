@@ -60,6 +60,9 @@ namespace ImageDeduplicator {
         private bool _OnlyDifferentSources = false;
         public bool OnlyDifferentSources { get { return _OnlyDifferentSources; } set { _OnlyDifferentSources = value; NotifyPropertyChanged("OnlyDifferentSources"); this.Reset(); } }
 
+        private bool _OnlyDifferentFolders = false;
+        public bool OnlyDifferentFolders { get { return _OnlyDifferentFolders; } set { _OnlyDifferentFolders = value; NotifyPropertyChanged("OnlyDifferentFolders"); this.Reset(); } }
+
         public int ThumbnailHeight {
             get {
                 return Properties.Settings.Default.ThumbnailHeight;
@@ -256,6 +259,11 @@ namespace ImageDeduplicator {
             ComparableImage other_image = SafelyGetNextImage(null);
             while(other_image!=null) {
                 if (OnlyDifferentSources && ci.Source == other_image.Source) {
+                    other_image = SafelyGetNextImage(other_image);
+                    continue;
+                }
+
+                if (OnlyDifferentFolders && ci.ImagePath.ToLower() == other_image.ImagePath.ToLower()) {
                     other_image = SafelyGetNextImage(other_image);
                     continue;
                 }

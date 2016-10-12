@@ -25,6 +25,7 @@ namespace ImageDeduplicator {
 
         public string ImageFile { get; private set; }
         public string ImageFileName { get; private set; }
+        public string ImagePath { get; private set; }
         public int ImageHeight { get; private set; }
         public int ImageWidth { get; private set; }
         public long ImagePixelCount { get; private set; }
@@ -150,6 +151,8 @@ namespace ImageDeduplicator {
                 throw new FileNotFoundException("Could not find specified file", ImageFile);
 
             ImageFileName = Path.GetFileName(ImageFile);
+            ImagePath = Path.GetDirectoryName(ImageFile);
+
             Image image = null;
             using (MemoryStream ms = new MemoryStream()) {
                 using (FileStream fs = File.OpenRead(ImageFile)) {

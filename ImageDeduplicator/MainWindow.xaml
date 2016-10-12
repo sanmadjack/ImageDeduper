@@ -35,6 +35,7 @@
                 </RibbonGroup>
                 <RibbonGroup Header="Options">
                     <RibbonCheckBox IsChecked="{Binding OnlyDifferentSources}" Label="Only Compare Different Source"  />
+                    <RibbonCheckBox IsChecked="{Binding OnlyDifferentFolders}" Label="Only Compare Different Folders"  />
                 </RibbonGroup>
                 <RibbonGroup Header="View">
                     <RibbonButton Name="clearComparisonButton" Label="Clear Comparison" Click="clearComparisonButton_Click" />
@@ -136,6 +137,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Label>TEST</Label>
                         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ScrollChanged="imageScrollViewer_ScrollChanged"
@@ -161,7 +163,8 @@
                             </Border>
                         </ScrollViewer>
                         <Label Content="{Binding Image.DisplayName}" Grid.Row="1" Background="White" />
-                        <WrapPanel  Orientation="Horizontal"  Background="White"  Grid.Row="2">
+                        <Label Content="{Binding Image.ImagePath}" Grid.Row="2" Background="White" />
+                        <WrapPanel  Orientation="Horizontal"  Background="White"  Grid.Row="3">
                             <StackPanel Orientation="Horizontal">
                                 <Label>File Size</Label>
                                 <Label Content="{Binding Image.ImageFileSizeString}" Background="White" />
