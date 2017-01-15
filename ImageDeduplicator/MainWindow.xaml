@@ -28,10 +28,12 @@
                     <RibbonButton Label="Load Folder" Tag="folder" Click="loadImages_Click"  Height="18" VerticalAlignment="Bottom" />
                     <RibbonButton Label="Load File List"  Tag="file_list" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                     <RibbonButton Label="Load From Database"  Tag="database" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
+                    <RibbonButton Name="shimmieLoadButton" Tag="shimmie" Label="Load From Shimmie" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                 </RibbonGroup>
                 <RibbonGroup Header="Actions">
                     <RibbonButton Name="deleteButton" Label="Delete" Click="deleteButton_Click" />
                     <RibbonButton Name="moveButton" Label="Move" Click="moveButton_Click" />
+                    <RibbonButton Name="mergeButton" Label="Merge" Click="mergeButton_Click" />
                 </RibbonGroup>
                 <RibbonGroup Header="Options">
                     <RibbonCheckBox IsChecked="{Binding OnlyDifferentSources}" Label="Only Compare Different Source"  />
@@ -91,7 +93,14 @@
                                                 </Border.Style>
                                                 <Image Source="{Binding Image.Thumbnail}" HorizontalAlignment="Left" 
                                            MouseEnter="Image_MouseEnter" MouseDown="Image_MouseDown"
-                                            Height="{Binding ElementName=thumbnailZoomSlider, Path=Value}" />
+                                            Height="{Binding ElementName=thumbnailZoomSlider, Path=Value}" >
+                                                    <Image.ContextMenu>
+                                                        <ContextMenu>
+                                                            <MenuItem Header="Remove From Group" Click="MenuItem_Click"
+                                                                      CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+                                                        </ContextMenu>
+                                                    </Image.ContextMenu>
+                                                </Image>
 
                                             </Border>
                                             <Label Grid.Row="1" Content="{Binding ResultString}" />

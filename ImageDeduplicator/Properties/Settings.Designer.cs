@@ -96,12 +96,13 @@ namespace ImageDeduplicator.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::System.Collections.Specialized.StringCollection connectionStrings {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastConnectionString {
             get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["connectionStrings"]));
+                return ((string)(this["LastConnectionString"]));
             }
             set {
-                this["connectionStrings"] = value;
+                this["LastConnectionString"] = value;
             }
         }
         
@@ -126,6 +127,78 @@ namespace ImageDeduplicator.Properties {
             }
             set {
                 this["LastQueryName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDeleteQuery {
+            get {
+                return ((string)(this["LastDeleteQuery"]));
+            }
+            set {
+                this["LastDeleteQuery"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastMergeQuery {
+            get {
+                return ((string)(this["LastMergeQuery"]));
+            }
+            set {
+                this["LastMergeQuery"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastShimmieTags {
+            get {
+                return ((string)(this["LastShimmieTags"]));
+            }
+            set {
+                this["LastShimmieTags"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastShimmieImagePath {
+            get {
+                return ((string)(this["LastShimmieImagePath"]));
+            }
+            set {
+                this["LastShimmieImagePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public long LastShimmieIDFrom {
+            get {
+                return ((long)(this["LastShimmieIDFrom"]));
+            }
+            set {
+                this["LastShimmieIDFrom"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public long LastShimmieIDTo {
+            get {
+                return ((long)(this["LastShimmieIDTo"]));
+            }
+            set {
+                this["LastShimmieIDTo"] = value;
             }
         }
     }

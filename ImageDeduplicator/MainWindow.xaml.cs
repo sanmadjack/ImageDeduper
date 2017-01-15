@@ -67,6 +67,7 @@ namespace ImageDeduplicator {
             loadImages(cont.Tag.ToString(), arg);
         }
 
+
         private void loadImages(String method, String arg = null) {
             AImageSource source;
             switch (method) {
@@ -81,6 +82,12 @@ namespace ImageDeduplicator {
                     if (!entry.ShowDialog().Value)
                         return;
                     source = entry.getImageSource();
+                    break;
+                case "shimmie":
+                    ShimmieSourceEntry shimmieEntry = new ShimmieSourceEntry();
+                    if (!shimmieEntry.ShowDialog().Value)
+                        return;
+                    source = shimmieEntry.getImageSource();
                     break;
                 default:
                     return;
@@ -151,7 +158,7 @@ namespace ImageDeduplicator {
                 ComparisonResult cr = (ComparisonResult)img.DataContext;
                 cr.Image.Selected = !cr.Image.Selected;
             }
-            if (e.RightButton == MouseButtonState.Pressed) {
+            if (e.MiddleButton == MouseButtonState.Pressed) {
                 Image img = (Image)sender;
                 ComparisonResult cr = (ComparisonResult)img.DataContext;
                 comparisonSet.ToggleImage(cr);
@@ -174,7 +181,7 @@ namespace ImageDeduplicator {
             List<ComparableImage> files = GatherSelectedFiles();
             foreach(ComparableImage ci in files) {
                 try {
-                    Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(ci.ImageFile, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+                    ci.Delete();
                 } catch(Exception ex) {
                     MessageBox.Show(ex.Message);
                 }
@@ -182,6 +189,28 @@ namespace ImageDeduplicator {
                     this.comparitor.RemoveImage(ci);
             }
         }
+
+        private void mergeButton_Click(object sender, RoutedEventArgs e) {
+            List<ComparableImage> files = GatherSelectedFiles();
+            foreach (ComparableImage ci in files) {
+                DuplicateImageSet dis = ci.CurrentDuplicateSet;
+                if(dis.GetUnselectedImages().Count !=1) {
+                    MessageBox.Show(this, "Only one image must be unselected in a set in order to merge");
+                    continue;
+                }
+
+                try {
+                    ComparableImage target = dis.GetUnselectedImages()[0];
+                    ComparableImage mergedImage = ci.Merge(target);
+                    dis.ReplaceImage(target, mergedImage);
+                } catch (Exception ex) {
+                    MessageBox.Show(ex.Message);
+                }
+                if (!File.Exists(ci.ImageFile))
+                    this.comparitor.RemoveImage(ci);
+            }
+        }
+
 
         private void moveButton_Click(object sender, RoutedEventArgs e) {
             string selected_dir = ChooseFolder(Properties.Settings.Default.LastMoveDir);
@@ -438,6 +467,19 @@ namespace ImageDeduplicator {
             }
         }
 
+        private void MenuItem_MouseDown(object sender, MouseButtonEventArgs e) {
+        }
 
+        private void MenuItem_Click(object sender, RoutedEventArgs e) {
+            Image img = (Image)getContextMenuParent(sender);
+            ComparisonResult cr = (ComparisonResult)img.DataContext;
+            cr.Image.CurrentDuplicateSet.RemoveImage(cr.Image);
+        }
+
+        private object getContextMenuParent(object sender) {
+            MenuItem menuItem = sender as MenuItem;
+                ContextMenu parentContextMenu = menuItem.CommandParameter as ContextMenu;
+                    return parentContextMenu.PlacementTarget;
+        }
     }
 }

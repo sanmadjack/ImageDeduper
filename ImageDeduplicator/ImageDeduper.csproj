@@ -107,6 +107,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ShimmieSourceEntry.xaml.cs">
+      <DependentUpon>ShimmieSourceEntry.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DatabaseSourceEntry.xaml.cs">
       <DependentUpon>DatabaseSourceEntry.xaml</DependentUpon>
     </Compile>
@@ -115,6 +118,7 @@
     <Compile Include="Identifiers\ScaledDifferenceIdentifier.cs" />
     <Compile Include="ImageSources\DatabaseImageSource.cs" />
     <Compile Include="ImageSources\FolderImageSource.cs" />
+    <Compile Include="ImageSources\ShimmieImageSource.cs" />
     <Compile Include="ImageSources\TextFileImageSource.cs" />
     <Compile Include="SelectionCriteria\AEvaluatingSelectionCriteria.cs" />
     <Compile Include="SelectionCriteria\AComparingSelectionCriteria.cs" />
@@ -130,6 +134,10 @@
       <DependentUpon>TextInputDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utilities.cs" />
+    <Page Include="ShimmieSourceEntry.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="DatabaseSourceEntry.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -34,6 +34,23 @@ namespace ImageDeduplicator {
             return false;
         }
 
+        public List<ComparableImage> GetUnselectedImages() {
+            List<ComparableImage> output = new List<ComparableImage>();
+            foreach(ComparisonResult result in this) {
+                if(!result.Image.Selected) {
+                    output.Add(result.Image);
+                }
+            }
+            return output;
+        }
+
+        public  virtual void ReplaceImage(ComparableImage original, ComparableImage newImage) {
+            ComparisonResult cr = this.GetImageResult(original);
+            cr.Image = newImage;
+          //  this.RemoveImage(original);
+        //    this.AddImage(newImage);
+        }
+
         public List<ComparableImage> GetImages() {
             List<ComparableImage> output = new List<ComparableImage>();
             foreach(ComparisonResult cr in this) {
@@ -42,9 +59,11 @@ namespace ImageDeduplicator {
             return output;
         }
 
-        public void RemoveImage(ComparableImage ci) {
+        public int RemoveImage(ComparableImage ci) {
             ComparisonResult cr = GetImageResult(ci);
+            int i = this.IndexOf(cr);
             this.Remove(cr);
+            return i;
         }
 
         public ComparisonResult GetImageResult(ComparableImage ci) {

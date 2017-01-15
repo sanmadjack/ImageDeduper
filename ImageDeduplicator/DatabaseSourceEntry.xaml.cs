@@ -20,12 +20,14 @@ namespace ImageDeduplicator {
     public partial class DatabaseSourceEntry : Window {
         public DatabaseSourceEntry() {
             InitializeComponent();
-            this.queryText.Text = Properties.Settings.Default.LastQuery;
+            this.connectionStringTxt.Text = Properties.Settings.Default.LastConnectionString;
+            this.selectQueryText.Text = Properties.Settings.Default.LastQuery;
+            this.deleteQueryText.Text = Properties.Settings.Default.LastDeleteQuery;
             this.nameText.Text = Properties.Settings.Default.LastQueryName;
         }
 
         public AImageSource getImageSource() {
-            return new DatabaseImageSource(this.nameText.Text, "mysql", this.connectionStringDropDown.Text, this.queryText.Text);
+            return new DatabaseImageSource(this.nameText.Text, "mysql", this.connectionStringTxt.Text, this.selectQueryText.Text, this.deleteQueryText.Text);
         }
 
         private void cancelButton_Click(object sender, RoutedEventArgs e) {
@@ -34,27 +36,16 @@ namespace ImageDeduplicator {
         }
 
         private void okButton_Click(object sender, RoutedEventArgs e) {
-            if (!Properties.Settings.Default.connectionStrings.Contains(this.connectionStringDropDown.Text)) {
-                MessageBoxResult result =  MessageBox.Show("Save connection string?", "Do you want to save this connection string?", MessageBoxButton.YesNoCancel);
-                switch(result) {
-                    case MessageBoxResult.Cancel:
-                        return;
-                    case MessageBoxResult.Yes:
-                        Properties.Settings.Default.connectionStrings.Add(this.connectionStringDropDown.Text);
-                        break;
-                }
-            }
-            Properties.Settings.Default.LastQuery = this.queryText.Text;
+            Properties.Settings.Default.LastQuery = this.selectQueryText.Text;
+            Properties.Settings.Default.LastDeleteQuery = this.deleteQueryText.Text;
             Properties.Settings.Default.LastQueryName = this.nameText.Text;
+            Properties.Settings.Default.LastConnectionString = this.connectionStringTxt.Text;
             Properties.Settings.Default.Save();
             this.DialogResult = true;
             this.Close();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
-            if (Properties.Settings.Default.connectionStrings == null)
-                Properties.Settings.Default.connectionStrings = new System.Collections.Specialized.StringCollection();
-            this.connectionStringDropDown.ItemsSource = Properties.Settings.Default.connectionStrings;
         }
     }
 }

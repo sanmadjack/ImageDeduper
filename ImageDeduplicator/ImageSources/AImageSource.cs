@@ -45,5 +45,24 @@ namespace ImageDeduplicator {
         }
 
         #endregion
+
+        public virtual void deleteImage(ComparableImage image) {
+            deleteImageFromDisk(image);
+        }
+
+        protected virtual void deleteImageFromDisk(ComparableImage image) {
+            if (System.IO.File.Exists(image.ImageFile))
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(image.ImageFile, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+            if (!String.IsNullOrWhiteSpace(image.ImageThumbnailFile) && System.IO.File.Exists(image.ImageThumbnailFile))
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(image.ImageThumbnailFile, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+        }
+
+        public virtual ComparableImage mergeImages(ComparableImage source, ComparableImage target) {
+            throw new NotImplementedException("This feature is not imeplemented for this image source");
+        }
+
+        public virtual ComparableImage Refresh(ComparableImage image) {
+            return image;
+        }
     }
 }

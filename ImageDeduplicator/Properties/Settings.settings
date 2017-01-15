@@ -20,7 +20,7 @@
     <Setting Name="SelectionCriteria" Type="ImageDeduplicator.SelectionCriteria.SelectionCriteria" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="connectionStrings" Type="System.Collections.Specialized.StringCollection" Scope="User">
+    <Setting Name="LastConnectionString" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="LastQuery" Type="System.String" Scope="User">
@@ -28,6 +28,24 @@
     </Setting>
     <Setting Name="LastQueryName" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastDeleteQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastMergeQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastShimmieTags" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastShimmieImagePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastShimmieIDFrom" Type="System.Int64" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="LastShimmieIDTo" Type="System.Int64" Scope="User">
+      <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>
 </SettingsFile>

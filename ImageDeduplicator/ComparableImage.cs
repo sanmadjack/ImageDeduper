@@ -14,6 +14,9 @@ using System.Windows.Media.Imaging;
 namespace ImageDeduplicator {
     public class ComparableImage : INotifyPropertyChanged, IComparable {
         public string DisplayName { get {
+                if (!string.IsNullOrEmpty(OverrideDisplayName))
+                    return OverrideDisplayName;
+
                 if (String.IsNullOrWhiteSpace(AlternativeName))
                     return ImageFileName;
                 else
@@ -21,9 +24,13 @@ namespace ImageDeduplicator {
             }
         }
 
+        public String OverrideDisplayName = String.Empty;
+
+
         private String AlternativeName = "";
 
         public string ImageFile { get; private set; }
+        public string ImageThumbnailFile { get; private set; }
         public string ImageFileName { get; private set; }
         public string ImagePath { get; private set; }
         public int ImageHeight { get; private set; }
@@ -53,7 +60,7 @@ namespace ImageDeduplicator {
             }
         }
 
-
+        public Object InternalIdentifier = null;
 
 
         public AImageSource Source { get; private set;  }
@@ -81,8 +88,9 @@ namespace ImageDeduplicator {
         HistogramIdentifier Histogram;
         ScaledDifferenceIdentifer Scaled;
 
-        public ComparableImage(AImageSource source, string image_file, String alternativeName = "") {
+        public ComparableImage(AImageSource source, string image_file, string image_thumbnail = "", String alternativeName = "") {
             this.ImageFile = image_file;
+            this.ImageThumbnailFile = image_thumbnail;
             this.Source = source;
             this.AlternativeName = alternativeName;
         }
@@ -184,7 +192,12 @@ namespace ImageDeduplicator {
         }
 
         public void RegenerateThumbnail() {
-            Image image = Bitmap.FromFile(ImageFile);
+            Image image;
+            if(String.IsNullOrWhiteSpace(this.ImageThumbnailFile))
+                image = Bitmap.FromFile(ImageFile);
+            else
+                image = Bitmap.FromFile(ImageThumbnailFile);
+
             UpdateThumbnail(image);
         }
 
@@ -243,6 +256,14 @@ namespace ImageDeduplicator {
             result = ci.Scaled.Compare(this.Scaled);
 
             return result;
+        }
+
+        public void Delete() {
+            this.Source.deleteImage(this);
+        }
+
+        public ComparableImage Merge(ComparableImage target) {
+            return this.Source.mergeImages(this, target);
         }
 
         #region INotify Implementation
