@@ -4,12 +4,23 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageDeduplicator"
-        mc:Ignorable="d"
+        xmlns:System="clr-namespace:System;assembly=mscorlib"
+        xmlns:SelectionCriteriaAlias="clr-namespace:ImageDeduplicator.SelectionCriteria"
+              mc:Ignorable="d"
         Title="MainWindow" Height="540.789" Width="839.474" Drop="RibbonWindow_Drop" AllowDrop="True">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo Description="An app with a taskbar info description" 
                      ProgressValue="{Binding LoadProgressDouble, Mode=OneWay}" ProgressState="Normal"/>
     </Window.TaskbarItemInfo>
+    <Window.Resources>
+        <ObjectDataProvider MethodName="GetValues"
+        ObjectType="{x:Type System:Enum}"
+        x:Key="SelectionCriteriaModes">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="SelectionCriteriaAlias:SelectionCriteriaMode" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -67,6 +78,9 @@
                 <ItemsControl Name="imagesList" ItemsSource="{Binding}" >
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                
+                            <Button Content="A" Click="Button_Click" />
                             <ItemsControl ItemsSource="{Binding}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -109,6 +123,7 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -206,61 +221,74 @@
                     Advanced
                 </Label>
             </Expander.Header>
-            <TabControl>
-                <TabItem Header="Auto-Select">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="25" />
-                            <RowDefinition Height="25" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ListView Width="200" Grid.Row="0" Grid.ColumnSpan="4" Name="selectorList" ItemsSource="{Binding}">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <CheckBox IsChecked="{Binding Enabled}" />
-                                        <Label Content="{Binding Name}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                        <Button Name="addSelectorButton" Grid.Row="1" Grid.Column="0" Content="Add" Click="addSelectorButton_Click">
-                            <Button.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Name="fileNameRegexSelectorMenuItem" Header="File Name Regex" Click="fileNameRegexSelectorMenuItem_Click" />
-                                    <MenuItem Name="lossyFIleFormatSelectorMenuItem" Header="Lossy File Format" Click="lossyFIleFormatSelectorMenuItem_Click" />
-                                    <MenuItem Name="parentDirectorySelectorMenuItem" Header="Parent Directory" Click="parentDirectorySelectorMenuItem_Click" />
-                                    <MenuItem Name="pathRegexSelectorMenuItem" Header="Path Regex" Click="pathRegexSelectorMenuItem_Click" />
-                                    <MenuItem Name="smallerFileSizeSelectorMenuItem" Header="Smaller File Size" Click="smallerFileSizeSelectorMenuItem_Click" />
-                                    <MenuItem Name="smallerPixelCountSelectorMenuItem" Header="Smaller Pixel Count" Click="smallerPixelCountSelectorMenuItem_Click" />
-                                </ContextMenu>
-                            </Button.ContextMenu>
-                        </Button>
-                        <Button Name="removeSelectorButton" Grid.Row="1" Grid.Column="1" Content="Remove" Click="removeSelectorButton_Click" />
-                        <Button Name="upSelectorButton" Grid.Row="1" Grid.Column="2" Content="Up" Click="upSelectorButton_Click" />
-                        <Button Name="downSelectorButton" Grid.Row="1" Grid.Column="3" Content="Down" Click="downSelectorButton_Click" />
-                        <Button Name="autoSelectButton" Grid.Row="2" Grid.ColumnSpan="4" Content="Auto Select" Click="autoSelectButton_Click" />
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Sources">
-                    <ListView Width="200" Grid.Row="0" Grid.ColumnSpan="4" Name="sourcesList" ItemsSource="{Binding}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <CheckBox IsChecked="{Binding Locked}" />
-                                    <Label Content="{Binding Name}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </TabItem>
-            </TabControl>
+            <Expander.Content>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <GridSplitter Grid.Column="0" Width="5" ResizeBehavior="PreviousAndCurrent" ResizeDirection="Columns"/>
+                    <TabControl Grid.Column="1">
+                        <TabItem Header="Auto-Select">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="25" />
+                                    <RowDefinition Height="25" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ListView HorizontalAlignment="Stretch" Grid.Row="0" Grid.ColumnSpan="4" Name="selectorList" ItemsSource="{Binding}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <ComboBox SelectedValue="{Binding Mode}" ItemsSource="{Binding Source={StaticResource SelectionCriteriaModes}}" />
+                                                <Label Content="{Binding Name}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                                <Button Name="addSelectorButton" Grid.Row="1" Grid.Column="0" Content="Add" Click="addSelectorButton_Click">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Name="fileNameRegexSelectorMenuItem" Header="File Name Regex" Click="fileNameRegexSelectorMenuItem_Click" />
+                                            <MenuItem Name="lossyFIleFormatSelectorMenuItem" Header="Lossy File Format" Click="lossyFIleFormatSelectorMenuItem_Click" />
+                                            <MenuItem Name="parentDirectorySelectorMenuItem" Header="Parent Directory" Click="parentDirectorySelectorMenuItem_Click" />
+                                            <MenuItem Name="pathRegexSelectorMenuItem" Header="Path Regex" Click="pathRegexSelectorMenuItem_Click" />
+                                            <MenuItem Name="smallerFileSizeSelectorMenuItem" Header="Smaller File Size" Click="smallerFileSizeSelectorMenuItem_Click" />
+                                            <MenuItem Name="smallerPixelCountSelectorMenuItem" Header="Smaller Pixel Count" Click="smallerPixelCountSelectorMenuItem_Click" />
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                </Button>
+                                <Button Name="removeSelectorButton" Grid.Row="1" Grid.Column="1" Content="Remove" Click="removeSelectorButton_Click" />
+                                <Button Name="upSelectorButton" Grid.Row="1" Grid.Column="2" Content="Up" Click="upSelectorButton_Click" />
+                                <Button Name="downSelectorButton" Grid.Row="1" Grid.Column="3" Content="Down" Click="downSelectorButton_Click" />
+                                <Button Name="autoSelectButton" Grid.Row="2" Grid.ColumnSpan="4" Content="Auto Select" Click="autoSelectButton_Click" />
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="Sources">
+                            <ListView HorizontalAlignment="Stretch" Grid.Row="0" Grid.ColumnSpan="4" Name="sourcesList" ItemsSource="{Binding}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox IsChecked="{Binding Locked}" />
+                                            <Label Content="{Binding Name}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </TabItem>
+                    </TabControl>
+
+
+                </Grid>
+            </Expander.Content>
+            
+
 
         </Expander>
     </Grid>

@@ -32,5 +32,15 @@ namespace ImageDeduplicator.ImageSources {
             return output;
         }
 
+        public override ComparableImage mergeImages(ComparableImage source, ComparableImage target)
+        {
+            FileInfo f = new FileInfo(source.ImageFile);
+            FileInfo fTarget = new FileInfo(target.ImageFile);
+            String newTarget = Path.Combine(fTarget.DirectoryName, f.Name);
+            this.deleteImageFromDisk(source);
+            fTarget.MoveTo(newTarget);
+            return new ComparableImage(this, newTarget);
+        }
+
     }
 }

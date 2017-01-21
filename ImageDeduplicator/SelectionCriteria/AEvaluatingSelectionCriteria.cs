@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace ImageDeduplicator.SelectionCriteria {
     public abstract class AEvaluatingSelectionCriteria : ASelectionCriteria {
-        protected override void PerformSelectionInternal(List<ComparableImage> images) {
-            foreach(ComparableImage image in images) {
+        protected override List<int> PerformSelectionInternal(List<ComparableImage> images) {
+            List<int> output = new List<int>();
+            foreach (ComparableImage image in images) {
                 bool result = DetermineIfSelectable(image);
-                if (result && !image.Selected)
-                    image.Selected = true;
+                if (result)
+                    output.Add(images.IndexOf(image));
             }
+            return output;
         }
 
         protected abstract bool DetermineIfSelectable(ComparableImage image);

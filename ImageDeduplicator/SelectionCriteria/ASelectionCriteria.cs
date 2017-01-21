@@ -11,13 +11,12 @@ namespace ImageDeduplicator.SelectionCriteria {
         [XmlIgnore]
         public virtual String Name { get; set; }
 
-
-        private bool _Enabled = true;
-        public bool Enabled { get {
-                return _Enabled;
+        private SelectionCriteriaMode _Mode = SelectionCriteriaMode.ELSE;
+        public SelectionCriteriaMode Mode { get {
+                return _Mode;
             }
             set {
-                _Enabled = value;
+                _Mode = value;
                 Properties.Settings.Default.Save();
             }
         }
@@ -26,14 +25,38 @@ namespace ImageDeduplicator.SelectionCriteria {
         }
 
         public void PerformSelection(List<ComparableImage> images) {
-            foreach (ComparableImage image in images) {
-                if (image.Selected) // Don't screw with existing selections
-                    return;
+            if (this.Mode == SelectionCriteriaMode.ELSE)
+            {
+                foreach (ComparableImage image in images)
+                {
+                    if (image.Selected) // Don't screw with existing selections
+                        return;
+                }
             }
 
-            PerformSelectionInternal(images);
+            List<int> selectionIndexes = PerformSelectionInternal(images);
+
+            switch (this.Mode)
+            {
+                case SelectionCriteriaMode.Disabled:
+                    return;
+                case SelectionCriteriaMode.ELSE:
+                    foreach(int i in selectionIndexes)
+                    {
+                        images[i].Selected = true;
+                    }
+                    break;
+                case SelectionCriteriaMode.AND:
+                    foreach(ComparableImage img in images)
+                    {
+                        img.Selected = img.Selected && selectionIndexes.Contains(images.IndexOf(img));
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
-        protected abstract void PerformSelectionInternal(List<ComparableImage> images);
+        protected abstract List<int> PerformSelectionInternal(List<ComparableImage> images);
     }
 }

@@ -409,11 +409,17 @@ namespace ImageDeduplicator {
                 throw new Exception("No selectors added");
 
             foreach (DuplicateImageSet dis in this) {
-                List<ComparableImage> setImages = dis.GetImages();
-                this.selectors.PerformSelection(setImages);
+                PerformAutoSelect(dis);
             }
 
         }
+
+        public void PerformAutoSelect(DuplicateImageSet set)
+        {
+            List<ComparableImage> setImages = set.GetImages();
+            this.selectors.PerformSelection(setImages);
+        }
+
 
         #region INotify Implementation
 

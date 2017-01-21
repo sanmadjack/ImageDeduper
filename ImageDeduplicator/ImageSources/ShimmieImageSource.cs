@@ -15,7 +15,7 @@ namespace ImageDeduplicator.ImageSources {
             " select i.id, " +
             @" CONCAT(CONCAT(CONCAT(%IMAGES_PATH%,CONCAT('\\',SUBSTRING(hash,1,2))),'\\'),hash) image_file, " +
             @" CONCAT(CONCAT(CONCAT(%THUMBS_PATH%,CONCAT('\\',SUBSTRING(hash,1,2))) ,'\\'),hash) thumb_file, " +
-            " GROUP_CONCAT(t.tag SEPARATOR ' ') tags " +
+            " GROUP_CONCAT(distinct t.tag SEPARATOR ' ') tags " +
             " from images i " +
             " INNER JOIN image_tags it ON it.image_id = i.id " +
             " INNER JOIN tags t ON t.id = it.tag_id";
@@ -68,6 +68,7 @@ namespace ImageDeduplicator.ImageSources {
                 if (String.IsNullOrWhiteSpace(tag))
                     continue;
                 output.Add("Tag" + i.ToString(), tag);
+                i++;
             }
             return output;
         }

@@ -107,6 +107,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="SelectionCriteria\SelectionCriteriaMode.cs" />
     <Compile Include="ShimmieSourceEntry.xaml.cs">
       <DependentUpon>ShimmieSourceEntry.xaml</DependentUpon>
     </Compile>

@@ -206,7 +206,6 @@ namespace ImageDeduplicator {
                 } catch (Exception ex) {
                     MessageBox.Show(ex.Message);
                 }
-                if (!File.Exists(ci.ImageFile))
                     this.comparitor.RemoveImage(ci);
             }
         }
@@ -480,6 +479,14 @@ namespace ImageDeduplicator {
             MenuItem menuItem = sender as MenuItem;
                 ContextMenu parentContextMenu = menuItem.CommandParameter as ContextMenu;
                     return parentContextMenu.PlacementTarget;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn  = sender as Button;
+            DuplicateImageSet set = btn.DataContext as DuplicateImageSet;
+
+            comparitor.PerformAutoSelect(set);
         }
     }
 }
