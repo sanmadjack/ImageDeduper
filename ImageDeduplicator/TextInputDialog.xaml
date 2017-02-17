@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageDeduplicator"
         mc:Ignorable="d"
-        Title="TextInputDialog" Height="80" Width="300">
+        Title="TextInputDialog" Height="80" Width="300" WindowStartupLocation="CenterOwner">
     <Grid>
         <Grid>
             <Grid.RowDefinitions>

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageDeduplicator"
         mc:Ignorable="d"
-        Title="DatabaseSourceEntry" Height="333.174" Width="427.119" Loaded="Window_Loaded">
+        Title="DatabaseSourceEntry" Height="333.174" Width="427.119" Loaded="Window_Loaded" WindowStartupLocation="CenterOwner">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="42" />
