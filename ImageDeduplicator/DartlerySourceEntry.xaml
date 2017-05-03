@@ -1,0 +1,52 @@
+﻿<Window x:Class="ImageDeduplicator.DartlerySourceEntry"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ImageDeduplicator"
+        mc:Ignorable="d"
+        Title="Dartlery Source Entry" Height="333.174" Width="427.119" Loaded="Window_Loaded" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="42" />
+            <RowDefinition Height="42" />
+            <RowDefinition Height="42" />
+            <RowDefinition Height="42" />
+            <RowDefinition Height="42" />
+            <RowDefinition Height="71*" />
+            <RowDefinition Height="28" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="259*"/>
+            <ColumnDefinition Width="169*"/>
+            <ColumnDefinition Width="97*"/>
+        </Grid.ColumnDefinitions>
+        <GroupBox x:Name="groupBox3" Header="Address"  Grid.Row="0"  Grid.ColumnSpan="3">
+            <TextBox x:Name="addressText"></TextBox>
+        </GroupBox>
+        <GroupBox x:Name="groupBox" Header="User"  Grid.Row="1" Grid.ColumnSpan="3">
+            <TextBox x:Name="userText" TextWrapping="Wrap" UndoLimit="101"/>
+        </GroupBox>
+        <GroupBox Header="Password"  Grid.Row="2" Grid.ColumnSpan="3">
+            <PasswordBox x:Name="passwordText"  />
+        </GroupBox>
+        <GroupBox Header="Image Path"  Grid.Row="3" Grid.ColumnSpan="3">
+            <TextBox x:Name="imagePathText"  />
+        </GroupBox>
+        <GroupBox Header="Cutoff Date"  Grid.Row="4" Grid.ColumnSpan="1">
+            <DatePicker  x:Name="cutoffDate"   />
+        </GroupBox>
+
+        <GroupBox Header="Cutoff Time"  Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2">
+            <TextBox x:Name="cutoffTime" />
+        </GroupBox>
+        
+        <GroupBox  Header="Tags" Grid.Row="5" Grid.ColumnSpan="3">
+            <TextBox x:Name="tagsText" TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+        </GroupBox>
+        <Button x:Name="cancelButton" Content="Cancel" Grid.Column="1" Grid.Row="6" Click="cancelButton_Click" />
+        <Button x:Name="okButton" Content="OK" Grid.Column="2" Grid.Row="6" Click="okButton_Click" />
+
+
+    </Grid>
+</Window>

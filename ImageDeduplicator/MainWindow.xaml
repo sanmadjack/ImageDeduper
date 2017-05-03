@@ -40,6 +40,7 @@
                     <RibbonButton Label="Load File List"  Tag="file_list" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                     <RibbonButton Label="Load From Database"  Tag="database" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                     <RibbonButton Name="shimmieLoadButton" Tag="shimmie" Label="Load From Shimmie" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
+                    <RibbonButton Name="dartleryLoadButton" Tag="dartlery" Label="Load From Dartlery" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                 </RibbonGroup>
                 <RibbonGroup Header="Actions">
                     <RibbonButton Name="deleteButton" Label="Delete" Click="deleteButton_Click" />

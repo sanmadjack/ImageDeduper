@@ -89,6 +89,12 @@ namespace ImageDeduplicator {
                         return;
                     source = shimmieEntry.getImageSource();
                     break;
+                case "dartlery":
+                    DartlerySourceEntry dartleryEntry = new DartlerySourceEntry();
+                    if (!dartleryEntry.ShowDialog().Value)
+                        return;
+                    source = dartleryEntry.getImageSource();
+                    break;
                 default:
                     return;
             }

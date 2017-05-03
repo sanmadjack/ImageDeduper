@@ -47,5 +47,23 @@
     <Setting Name="LastShimmieIDTo" Type="System.Int64" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
+    <Setting Name="LastDartleryTags" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastDartleryUser" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastDartleryPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastDartleryAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastDartleryImagePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastDartleryCutoffDate" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

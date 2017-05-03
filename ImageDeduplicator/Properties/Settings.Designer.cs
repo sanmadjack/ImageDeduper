@@ -12,7 +12,7 @@ namespace ImageDeduplicator.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.0.1.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -199,6 +199,78 @@ namespace ImageDeduplicator.Properties {
             }
             set {
                 this["LastShimmieIDTo"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDartleryTags {
+            get {
+                return ((string)(this["LastDartleryTags"]));
+            }
+            set {
+                this["LastDartleryTags"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDartleryUser {
+            get {
+                return ((string)(this["LastDartleryUser"]));
+            }
+            set {
+                this["LastDartleryUser"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDartleryPassword {
+            get {
+                return ((string)(this["LastDartleryPassword"]));
+            }
+            set {
+                this["LastDartleryPassword"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDartleryAddress {
+            get {
+                return ((string)(this["LastDartleryAddress"]));
+            }
+            set {
+                this["LastDartleryAddress"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDartleryImagePath {
+            get {
+                return ((string)(this["LastDartleryImagePath"]));
+            }
+            set {
+                this["LastDartleryImagePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDartleryCutoffDate {
+            get {
+                return ((string)(this["LastDartleryCutoffDate"]));
+            }
+            set {
+                this["LastDartleryCutoffDate"] = value;
             }
         }
     }
