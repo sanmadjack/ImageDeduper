@@ -139,10 +139,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DartlerySourceEntry.xaml.cs">
+    <None Include="DartlerySourceEntry.xaml.cs">
       <DependentUpon>DartlerySourceEntry.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ImageSources\DartleryImageSource.cs" />
+    </None>
+    <None Include="ImageSources\DartleryImageSource.cs" />
     <Compile Include="SelectionCriteria\SelectionCriteriaMode.cs" />
     <Compile Include="ShimmieSourceEntry.xaml.cs">
       <DependentUpon>ShimmieSourceEntry.xaml</DependentUpon>
@@ -171,10 +171,10 @@
       <DependentUpon>TextInputDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utilities.cs" />
-    <Page Include="DartlerySourceEntry.xaml">
+    <None Include="DartlerySourceEntry.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
+    </None>
     <Page Include="ShimmieSourceEntry.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -239,12 +239,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\dartlery_csharp_client\Dartlery.Client.csproj">
-      <Project>{32bb4068-9610-4375-b0f4-713f8bd0f9b1}</Project>
-      <Name>Dartlery.Client</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" />
