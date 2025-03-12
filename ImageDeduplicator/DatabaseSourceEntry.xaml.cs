@@ -27,7 +27,7 @@ namespace ImageDeduplicator {
         }
 
         public AImageSource getImageSource() {
-            return new DatabaseImageSource(this.nameText.Text, "mysql", this.connectionStringTxt.Text, this.selectQueryText.Text, this.deleteQueryText.Text);
+            return new DatabaseImageSource(this.nameText.Text, DatabaseImageSource.PROVIDER_MYSQL, this.connectionStringTxt.Text, this.selectQueryText.Text, this.deleteQueryText.Text);
         }
 
         private void cancelButton_Click(object sender, RoutedEventArgs e) {

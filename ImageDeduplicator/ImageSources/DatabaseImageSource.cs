@@ -6,9 +6,14 @@ using System.Data;
 using System.Data.Common;
 using MySql.Data.MySqlClient;
 using System.Threading.Tasks;
+using Npgsql;
 
 namespace ImageDeduplicator.ImageSources {
     public class DatabaseImageSource : AImageSource {
+        public const string PROVIDER_MYSQL = "mysql";
+        public const string PROVIDER_POSTGRES = "postgres";
+
+
         protected String name, provider, connectionString, selectQuery, deleteQuery, mergeQuery;
 
         public DatabaseImageSource(String name, String provider, String connectionString, String query, String deleteQuery) : base(name) {
@@ -21,7 +26,8 @@ namespace ImageDeduplicator.ImageSources {
 
         protected String getParameterMarker() {
             switch (this.provider) {
-                case "mysql":
+                case PROVIDER_MYSQL:
+                case PROVIDER_POSTGRES:
                     return "@";
                 default:
                     throw new NotSupportedException("Database provider " + this.provider + " not supported");
@@ -30,8 +36,10 @@ namespace ImageDeduplicator.ImageSources {
 
         protected DbConnection getConnection() {
             switch (this.provider) {
-                case "mysql":
+                case PROVIDER_MYSQL:
                     return new MySqlConnection(this.connectionString);
+                case PROVIDER_POSTGRES:
+                    return new NpgsqlConnection(this.connectionString);
                 default:
                     throw new NotSupportedException("Database provider " + this.provider + " not supported");
             }
@@ -42,9 +50,15 @@ namespace ImageDeduplicator.ImageSources {
             foreach (String query in command.Split(';')) {
                 if (string.IsNullOrWhiteSpace(query))
                     continue;
+                DbCommand cmd;
                 switch (this.provider) {
-                    case "mysql":
-                        MySqlCommand cmd = new MySqlCommand(command, (MySqlConnection)con);
+                    case PROVIDER_MYSQL:
+                        cmd = new MySqlCommand(command, (MySqlConnection)con);
+                        cmd.CommandTimeout = 120;
+                        output.Add(cmd);
+                        break;
+                    case PROVIDER_POSTGRES:
+                        cmd = new NpgsqlCommand(command, (NpgsqlConnection)con);
                         cmd.CommandTimeout = 120;
                         output.Add(cmd);
                         break;
@@ -80,8 +94,10 @@ namespace ImageDeduplicator.ImageSources {
 
         protected DbDataAdapter getDataAdapter(DbCommand cmd) {
             switch (this.provider) {
-                case "mysql":
+                case PROVIDER_MYSQL:
                     return new MySqlDataAdapter((MySqlCommand)cmd);
+                case PROVIDER_POSTGRES:
+                    return new NpgsqlDataAdapter((NpgsqlCommand)cmd);
                 default:
                     throw new NotSupportedException("Database provider " + this.provider + " not supported");
             }
@@ -89,8 +105,10 @@ namespace ImageDeduplicator.ImageSources {
 
         protected Object getParameter(String name, Object value) {
             switch (this.provider) {
-                case "mysql":
+                case PROVIDER_MYSQL:
                     return new MySqlParameter(name, value);
+                case PROVIDER_POSTGRES:
+                    return new NpgsqlParameter(name, value);
                 default:
                     throw new NotSupportedException("Database provider " + this.provider + " not supported");
             }

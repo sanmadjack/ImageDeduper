@@ -38,9 +38,10 @@
         <GroupBox Header="Image Path"  Grid.Row="3" Grid.ColumnSpan="3">
             <TextBox x:Name="imagePathTxt" TextWrapping="Wrap" UndoLimit="101"/>
         </GroupBox>
-        <Label x:Name="label" Content="Only MySQL currently supported" Grid.Row="4" />
         <Button x:Name="cancelButton" Content="Cancel" Grid.Column="1" Grid.Row="4" Click="cancelButton_Click" />
         <Button x:Name="okButton" Content="OK" Grid.Column="2" Grid.Row="4" Click="okButton_Click" />
+        <RadioButton GroupName="DatabaseType" Name="rdoMysql" Content="MySQL" HorizontalAlignment="Left" Margin="10,5.333,0,0" Grid.Row="4" VerticalAlignment="Top"/>
+        <RadioButton GroupName="DatabaseType" Name="rdoPostgres" IsChecked="True" Content="PostgreSQL" HorizontalAlignment="Left" Margin="95,5.333,0,0" Grid.Row="4" VerticalAlignment="Top"/>
 
 
     </Grid>

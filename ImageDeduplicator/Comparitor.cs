@@ -62,6 +62,12 @@ namespace ImageDeduplicator {
 
         private bool _OnlyDifferentFolders = false;
         public bool OnlyDifferentFolders { get { return _OnlyDifferentFolders; } set { _OnlyDifferentFolders = value; NotifyPropertyChanged("OnlyDifferentFolders"); this.Reset(); } }
+        private bool _OnlyDifferentSizes= false;
+        public bool OnlyDifferentSizes { get { return _OnlyDifferentSizes; } set { _OnlyDifferentSizes = value; NotifyPropertyChanged("OnlyDifferentSizes "); this.Reset(); } }
+
+
+        private bool _OnlyChecksum = false;
+        public bool OnlyChecksum { get { return _OnlyChecksum; } set { _OnlyChecksum = value; NotifyPropertyChanged("OnlyChecksum"); this.Reset(); } }
 
         public int ThumbnailHeight {
             get {
@@ -268,7 +274,20 @@ namespace ImageDeduplicator {
                     continue;
                 }
 
+                if (OnlyDifferentSizes && (ci.ImageHeight == other_image.ImageHeight && ci.ImageWidth== other_image.ImageWidth))
+                {
+                    other_image = SafelyGetNextImage(other_image);
+                    continue;
+                }
+
+
                 if (ci.ImageFile == other_image.ImageFile) { // Same image check
+                    other_image = SafelyGetNextImage(other_image);
+                    continue;
+                }
+
+                if (OnlyChecksum && ci.Checksum!=other_image.Checksum)
+                {
                     other_image = SafelyGetNextImage(other_image);
                     continue;
                 }

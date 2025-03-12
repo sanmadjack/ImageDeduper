@@ -28,10 +28,20 @@ namespace ImageDeduplicator {
         }
 
         public AImageSource getImageSource() {
+            string database;
+            if(rdoMysql.IsChecked.GetValueOrDefault(false))
+            {
+                database = DatabaseImageSource.PROVIDER_MYSQL;
+            } else
+            {
+                database = DatabaseImageSource.PROVIDER_POSTGRES;
+            }
+
+
             if (String.IsNullOrEmpty(this.tagsTxt.Text)) {
-                return new ShimmieImageSource("mysql", this.connectionStringTxt.Text, long.Parse(this.txtIdFrom.Text), long.Parse(this.txtIdTo.Text), this.imagePathTxt.Text);
+                return new ShimmieImageSource(database, this.connectionStringTxt.Text, long.Parse(this.txtIdFrom.Text), long.Parse(this.txtIdTo.Text), this.imagePathTxt.Text);
             } else {
-                return new ShimmieImageSource("mysql", this.connectionStringTxt.Text, this.tagsTxt.Text, this.imagePathTxt.Text);
+                return new ShimmieImageSource(database, this.connectionStringTxt.Text, this.tagsTxt.Text, this.imagePathTxt.Text);
             }
         }
 

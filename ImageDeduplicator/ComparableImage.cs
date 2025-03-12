@@ -10,6 +10,7 @@ using System.IO;
 using ImageDeduplicator.Identifiers;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Security.Cryptography;
 
 namespace ImageDeduplicator {
     public class ComparableImage : INotifyPropertyChanged, IComparable {
@@ -36,6 +37,28 @@ namespace ImageDeduplicator {
         public int ImageHeight { get; private set; }
         public int ImageWidth { get; private set; }
         public long ImagePixelCount { get; private set; }
+
+        private string _Checksum;
+
+        public string  Checksum
+        {
+            get
+            {
+                if(String.IsNullOrWhiteSpace(_Checksum))
+                {
+                    using (var md5 = MD5.Create())
+                    {
+                        using (var stream = File.OpenRead(this.ImageFile))
+                        {
+                            var hash = md5.ComputeHash(stream);
+                            _Checksum = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                        }
+                    }
+
+                }
+                return _Checksum;
+            }
+        }
 
         public string ImageDimensions { get {
                 return String.Concat(ImageWidth, "x", ImageHeight);
@@ -193,7 +216,7 @@ namespace ImageDeduplicator {
 
         public void RegenerateThumbnail() {
             Image image;
-            if(String.IsNullOrWhiteSpace(this.ImageThumbnailFile))
+            if(String.IsNullOrWhiteSpace(this.ImageThumbnailFile) || !File.Exists(ImageThumbnailFile))
                 image = Bitmap.FromFile(ImageFile);
             else
                 image = Bitmap.FromFile(ImageThumbnailFile);

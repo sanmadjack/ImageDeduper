@@ -1,22 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.9
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageDeduper", "ImageDeduplicator\ImageDeduper.csproj", "{64745CE0-521F-4B85-9664-F350C1D5BF01}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{64745CE0-521F-4B85-9664-F350C1D5BF01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{64745CE0-521F-4B85-9664-F350C1D5BF01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64745CE0-521F-4B85-9664-F350C1D5BF01}.Debug|x64.ActiveCfg = Debug|x64
+		{64745CE0-521F-4B85-9664-F350C1D5BF01}.Debug|x64.Build.0 = Debug|x64
 		{64745CE0-521F-4B85-9664-F350C1D5BF01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64745CE0-521F-4B85-9664-F350C1D5BF01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64745CE0-521F-4B85-9664-F350C1D5BF01}.Release|x64.ActiveCfg = Release|x64
+		{64745CE0-521F-4B85-9664-F350C1D5BF01}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {859D4358-CAF1-4C46-B12F-4C4E27845B27}
 	EndGlobalSection
 EndGlobal

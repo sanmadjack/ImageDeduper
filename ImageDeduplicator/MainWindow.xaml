@@ -50,6 +50,8 @@
                 <RibbonGroup Header="Options">
                     <RibbonCheckBox IsChecked="{Binding OnlyDifferentSources}" Label="Only Compare Different Source"  />
                     <RibbonCheckBox IsChecked="{Binding OnlyDifferentFolders}" Label="Only Compare Different Folders"  />
+                    <RibbonCheckBox IsChecked="{Binding OnlyDifferentSizes}" Label="Only Compare Different Sizes"  />
+                    <RibbonCheckBox IsChecked="{Binding OnlyChecksum}" Label="Only Compare Checksums"  />
                 </RibbonGroup>
                 <RibbonGroup Header="View">
                     <RibbonButton Name="clearComparisonButton" Label="Clear Comparison" Click="clearComparisonButton_Click" />
@@ -71,7 +73,7 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0">Similarity</Label>
                 <Slider Grid.Column="1" Name="simliaritySlider" Minimum="1" Maximum="100" HorizontalAlignment="Stretch"
-                    Value="{Binding Fuzziness, Mode=TwoWay}" PreviewMouseUp="simliaritySlider_PreviewMouseUp" TickFrequency="1" IsSnapToTickEnabled="True"  />
+                    Value="{Binding Fuzziness, Mode=TwoWay}" PreviewMouseUp="simliaritySlider_PreviewMouseUp" TickFrequency="0.01" IsSnapToTickEnabled="True"  />
                 <Label Grid.Column="2" Content="{Binding Fuzziness, Mode=OneWay}" Name="similarityLabel" />
             </Grid>
 
