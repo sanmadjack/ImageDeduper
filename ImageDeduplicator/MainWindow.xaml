@@ -7,7 +7,7 @@
         xmlns:System="clr-namespace:System;assembly=mscorlib"
         xmlns:SelectionCriteriaAlias="clr-namespace:ImageDeduplicator.SelectionCriteria"
               mc:Ignorable="d"
-        Title="MainWindow" Height="540.789" Width="839.474" Drop="RibbonWindow_Drop" AllowDrop="True">
+        Title="Matt's Image Deduper" Height="540.789" Width="839.474" Drop="RibbonWindow_Drop" AllowDrop="True">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo Description="An app with a taskbar info description" 
                      ProgressValue="{Binding LoadProgressDouble, Mode=OneWay}" ProgressState="Normal"/>
