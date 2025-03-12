@@ -40,7 +40,6 @@
                     <RibbonButton Label="Load File List"  Tag="file_list" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                     <RibbonButton Label="Load From Database"  Tag="database" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                     <RibbonButton Name="shimmieLoadButton" Tag="shimmie" Label="Load From Shimmie" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
-                    <RibbonButton Name="dartleryLoadButton" Tag="dartlery" Label="Load From Dartlery" Click="loadImages_Click" Height="18" VerticalAlignment="Bottom" />
                 </RibbonGroup>
                 <RibbonGroup Header="Actions">
                     <RibbonButton Name="deleteButton" Label="Delete" Click="deleteButton_Click" />
@@ -190,7 +189,7 @@
                             </Border>
                         </ScrollViewer>
                         <Label Content="{Binding Image.DisplayName}" Grid.Row="1" Background="White" />
-                        <Label Content="{Binding Image.ImagePath}" Grid.Row="2" Background="White" />
+                        <Label Content="{Binding Image.ImageFilePath}" Grid.Row="2" Background="White" />
                         <WrapPanel  Orientation="Horizontal"  Background="White"  Grid.Row="3">
                             <StackPanel Orientation="Horizontal">
                                 <Label>File Size</Label>

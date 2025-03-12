@@ -55,6 +55,8 @@ namespace ImageDeduplicator {
                 Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(image.ImageFile, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
             if (!String.IsNullOrWhiteSpace(image.ImageThumbnailFile) && System.IO.File.Exists(image.ImageThumbnailFile))
                 Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(image.ImageThumbnailFile, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+            if (!String.IsNullOrWhiteSpace(image.ImageProxyFile) && System.IO.File.Exists(image.ImageProxyFile))
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(image.ImageProxyFile, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
         }
 
         public virtual ComparableImage mergeImages(ComparableImage source, ComparableImage target) {

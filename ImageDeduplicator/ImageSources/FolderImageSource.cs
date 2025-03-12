@@ -21,6 +21,10 @@ namespace ImageDeduplicator.ImageSources {
             List<String> output = new List<String>();
 
             foreach (string f in Directory.GetFiles(path)) {
+                if (f.EndsWith(".proxy.png"))
+                {
+                    continue;
+                }
                 output.Add(f);
             }
             bool recursive = true;

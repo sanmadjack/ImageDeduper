@@ -11,6 +11,7 @@ using ImageDeduplicator.Identifiers;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Security.Cryptography;
+using ImageMagick;
 
 namespace ImageDeduplicator {
     public class ComparableImage : INotifyPropertyChanged, IComparable {
@@ -31,9 +32,59 @@ namespace ImageDeduplicator {
         private String AlternativeName = "";
 
         public string ImageFile { get; private set; }
+        public string ImageProxyFile { get {
+                if(String.IsNullOrWhiteSpace(ImageFile))
+                {
+                    return "";
+                }
+                var preExtension = Path.GetFileNameWithoutExtension(ImageFileName);
+                return Path.Combine(ImageFilePath, preExtension + ".proxy.png");
+            }
+        }
+        public string ImageFileForFullView
+        { get
+            {
+                if (!String.IsNullOrWhiteSpace(ImageProxyFile) && File.Exists(ImageProxyFile))
+                {
+                    return ImageProxyFile;
+                }
+                return ImageFile;
+            }
+           
+        }
+        public string ImageFileExtension
+        {
+            get {
+                if (String.IsNullOrWhiteSpace(ImageFile))
+                {
+                    return "";
+                }
+                return Path.GetExtension(ImageFile);
+            }
+        }
+        public string ImageFilePath
+        {
+            get
+            {
+                if (String.IsNullOrWhiteSpace(ImageFile))
+                {
+                    return "";
+                }
+                return Path.GetDirectoryName(ImageFile);
+            }
+        }
+        public string ImageFileName
+        {
+            get
+            {
+                if (String.IsNullOrWhiteSpace(ImageFile))
+                {
+                    return "";
+                }
+                return Path.GetFileName(ImageFile);
+            }
+        }
         public string ImageThumbnailFile { get; private set; }
-        public string ImageFileName { get; private set; }
-        public string ImagePath { get; private set; }
         public int ImageHeight { get; private set; }
         public int ImageWidth { get; private set; }
         public long ImagePixelCount { get; private set; }
@@ -178,18 +229,34 @@ namespace ImageDeduplicator {
         }
 
         public void LoadImage() {
-            if (!File.Exists(ImageFile))
+            var fi = new FileInfo(ImageFile);
+            if (!fi.Exists)
                 throw new FileNotFoundException("Could not find specified file", ImageFile);
 
-            ImageFileName = Path.GetFileName(ImageFile);
-            ImagePath = Path.GetDirectoryName(ImageFile);
-
             Image image = null;
-            using (MemoryStream ms = new MemoryStream()) {
-                using (FileStream fs = File.OpenRead(ImageFile)) {
-                    fs.CopyTo(ms);
+            var fileToLoad = ImageFile;
+            if (ImageFileExtension==".heic" || ImageFileExtension == ".webp")
+            {
+                fileToLoad = ImageProxyFile;
+                ImageThumbnailFile = ImageProxyFile;
+                if (!File.Exists(ImageProxyFile))
+                {
+                    // Create ze proxy!
+                    using (MagickImage mImage = new MagickImage(ImageFile))
+                    {
+                        // Save frame as jpg
+                        mImage.Write(ImageProxyFile);
+                    }
+
                 }
-                ImageFileSize = ms.Length;
+            }
+            ImageFileSize = fi.Length;
+
+            using (MemoryStream ms = new MemoryStream()) {
+
+                using (FileStream fs = File.OpenRead(fileToLoad)) {
+                    fs.CopyTo(ms);
+                }                
 
                 ms.Seek(0, SeekOrigin.Begin);
 

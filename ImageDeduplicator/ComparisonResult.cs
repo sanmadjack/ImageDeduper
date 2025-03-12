@@ -49,7 +49,7 @@ namespace ImageDeduplicator {
         public BitmapImage FullBitmapImage {
             get {
                 try {
-                    using (Stream file = File.OpenRead(Image.ImageFile)) {
+                    using (Stream file = File.OpenRead(Image.ImageFileForFullView)) {
                         BitmapImage bitmap = new BitmapImage();
                         bitmap.BeginInit();
                         bitmap.StreamSource = file;

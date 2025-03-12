@@ -269,7 +269,7 @@ namespace ImageDeduplicator {
                     continue;
                 }
 
-                if (OnlyDifferentFolders && ci.ImagePath.ToLower() == other_image.ImagePath.ToLower()) {
+                if (OnlyDifferentFolders && ci.ImageFilePath.ToLower() == other_image.ImageFilePath.ToLower()) {
                     other_image = SafelyGetNextImage(other_image);
                     continue;
                 }
